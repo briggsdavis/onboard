@@ -7,19 +7,24 @@ import {
   questions,
   type Answers,
   type AnswerValue,
+  type InspirationValue,
   type ListItem,
   type Question,
+  type RangeValue,
   type UploadedFile,
 } from "./questions"
 import {
   ColorField,
   FileUpload,
+  InspirationField,
+  LinkListField,
   ListField,
   LongText,
   MultiSelect,
   RangeSlider,
   ShortText,
   SingleSelect,
+  formatNumber,
 } from "./fields"
 import { extractPalette } from "./palette"
 
@@ -45,6 +50,8 @@ function defaultValue(q: Question | undefined): AnswerValue {
   if (q.kind === "file_upload") return []
   if (q.kind === "range") return [q.min, q.max]
   if (q.kind === "list") return []
+  if (q.kind === "link_list") return []
+  if (q.kind === "inspiration") return { files: [], links: [] }
   return ""
 }
 
@@ -52,6 +59,10 @@ function isEmpty(v: AnswerValue) {
   if (typeof v === "string") {
     if (v.startsWith("other:")) return v.slice("other:".length).trim() === ""
     return v.trim() === ""
+  }
+  if (!Array.isArray(v)) {
+    const insp = v as InspirationValue
+    return insp.files.length === 0 && insp.links.length === 0
   }
   return v.length === 0
 }
@@ -141,7 +152,8 @@ export default function App() {
   const setValue = (v: AnswerValue) =>
     setState((s) => ({ ...s, answers: { ...s.answers, [q.id]: v } }))
 
-  const canAdvance = !q?.required || !isEmpty(answers[q.id] ?? defaultValue(q))
+  const isReview = q?.kind === "review"
+  const canAdvance = isReview || !q?.required || !isEmpty(answers[q.id] ?? defaultValue(q))
 
   const next = () => {
     if (phase === "out" || !canAdvance) return
@@ -159,10 +171,12 @@ export default function App() {
 
   const submit = async () => {
     try {
-      const known = new Set(questions.map((q) => q.id))
+      const known = new Set(
+        questions.filter((q) => q.kind !== "review").map((q) => q.id),
+      )
       const filtered = Object.fromEntries(Object.entries(answers).filter(([k]) => known.has(k)))
       await submitMutation({
-        ...filtered,
+        ...(filtered as any),
         submittedAt: new Date().toISOString(),
       })
       localStorage.removeItem(STORAGE_KEY)
@@ -212,7 +226,7 @@ export default function App() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center gap-8 px-6 sm:px-10">
+    <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center gap-8 px-6 py-16 sm:px-10">
       <div
         key={q.id}
         className={`flex flex-col gap-8 ${phase === "out" ? "animate-question-out" : "animate-question-in"}`}
@@ -223,14 +237,18 @@ export default function App() {
 
         <h1 className="text-4xl font-light tracking-tight sm:text-5xl">{prompt}</h1>
 
-        <Field
-          q={q}
-          value={value}
-          setValue={setValue}
-          onSubmit={next}
-          suggested={suggested}
-          listNoun={listNoun}
-        />
+        {isReview ? (
+          <ReviewSummary answers={answers} />
+        ) : (
+          <Field
+            q={q}
+            value={value}
+            setValue={setValue}
+            onSubmit={next}
+            suggested={suggested}
+            listNoun={listNoun}
+          />
+        )}
 
         <div className="flex items-center gap-6 pt-2">
           <button
@@ -253,6 +271,161 @@ export default function App() {
       </div>
     </main>
   )
+}
+
+function ReviewSummary({ answers }: { answers: Answers }) {
+  const entries = questions
+    .filter((q) => q.kind !== "review")
+    .map((q) => {
+      const v = answers[q.id] ?? defaultValue(q)
+      if (isEmpty(v)) return null
+      return { q, v }
+    })
+    .filter((x): x is { q: Question; v: AnswerValue } => x !== null)
+
+  if (entries.length === 0) {
+    return (
+      <p className="text-muted font-light">No answers yet. Go back and fill in your details.</p>
+    )
+  }
+
+  return (
+    <div className="flex flex-col divide-y divide-rule overflow-y-auto max-h-[55vh] pr-1">
+      {entries.map(({ q, v }) => (
+        <div key={q.id} className="flex flex-col gap-2 py-4">
+          <div className="font-mono text-xs uppercase tracking-widest text-muted">{q.prompt}</div>
+          <AnswerPreview q={q} v={v} />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function AnswerPreview({ q, v }: { q: Question; v: AnswerValue }) {
+  switch (q.kind) {
+    case "short_text":
+    case "long_text":
+      return <p className="font-light text-fg whitespace-pre-wrap">{v as string}</p>
+
+    case "single_select": {
+      const str = v as string
+      if (str.startsWith("other:")) {
+        return <p className="font-light text-fg">{str.slice(6) || "Other"}</p>
+      }
+      const opt = q.options.find((o) => o.value === str)
+      return <p className="font-light text-fg">{opt?.label ?? str}</p>
+    }
+
+    case "multi_select": {
+      const vals = v as string[]
+      const labels = vals.map((val) => {
+        if (val.startsWith("other:")) return val.slice(6) || "Other"
+        const opt = q.options.find((o) => o.value === val)
+        return opt?.label ?? val
+      })
+      return <p className="font-light text-fg">{labels.join(", ")}</p>
+    }
+
+    case "color": {
+      const colors = v as string[]
+      return (
+        <div className="flex flex-wrap gap-2">
+          {colors.map((c) => (
+            <div
+              key={c}
+              className="h-6 w-6 border border-rule"
+              style={{ backgroundColor: c }}
+              title={c}
+            />
+          ))}
+        </div>
+      )
+    }
+
+    case "file_upload": {
+      const files = v as UploadedFile[]
+      return (
+        <p className="font-light text-fg">
+          {files.length} file{files.length !== 1 ? "s" : ""}: {files.map((f) => f.name).join(", ")}
+        </p>
+      )
+    }
+
+    case "range": {
+      const [lo, hi] = v as RangeValue
+      return (
+        <p className="font-light text-fg">
+          {formatNumber(lo, q.format)} – {formatNumber(hi, q.format)}
+        </p>
+      )
+    }
+
+    case "list": {
+      const items = v as ListItem[]
+      return (
+        <div className="flex flex-col gap-1">
+          {items.map((item) => (
+            <div key={item.id} className="flex items-baseline gap-2">
+              <span className="font-light text-fg">{item.name}</span>
+              {item.itemType && (
+                <span className="font-mono text-xs uppercase tracking-widest text-muted">
+                  ({item.itemType})
+                </span>
+              )}
+              {item.description && (
+                <span className="text-sm text-muted">— {item.description}</span>
+              )}
+            </div>
+          ))}
+        </div>
+      )
+    }
+
+    case "link_list": {
+      const links = v as string[]
+      return (
+        <div className="flex flex-col gap-1">
+          {links.map((link, i) => (
+            <div key={i} className="flex items-baseline gap-2">
+              <span className="font-mono text-xs text-muted">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <span className="font-light text-fg break-all">{link}</span>
+            </div>
+          ))}
+        </div>
+      )
+    }
+
+    case "inspiration": {
+      const insp = v as InspirationValue
+      return (
+        <div className="flex flex-col gap-3">
+          {insp.files.length > 0 && (
+            <p className="font-light text-fg">
+              {insp.files.length} screenshot{insp.files.length !== 1 ? "s" : ""}:{" "}
+              {insp.files.map((f) => f.name).join(", ")}
+            </p>
+          )}
+          {insp.links.length > 0 && (
+            <div className="flex flex-col gap-1">
+              {insp.links.map((link, i) => (
+                <div key={i} className="flex items-baseline gap-2">
+                  <span className="font-mono text-xs text-muted">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <span className="font-light text-fg break-all">{link}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )
+    }
+
+    default:
+      return null
+  }
 }
 
 function Field({
@@ -289,5 +462,17 @@ function Field({
       return <RangeSlider q={q} value={value as [number, number]} onChange={setValue} />
     case "list":
       return <ListField q={q} value={value as ListItem[]} onChange={setValue} noun={listNoun} />
+    case "link_list":
+      return <LinkListField q={q} value={value as string[]} onChange={setValue} />
+    case "inspiration":
+      return (
+        <InspirationField
+          q={q}
+          value={value as InspirationValue}
+          onChange={setValue}
+        />
+      )
+    case "review":
+      return null
   }
 }

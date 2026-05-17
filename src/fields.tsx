@@ -4,7 +4,7 @@ import { HexColorPicker, HexColorInput } from "react-colorful"
 import { useMutation, useQuery } from "convex/react"
 import { api } from "../convex/_generated/api"
 import type { Id } from "../convex/_generated/dataModel"
-import type { ListItem, Question, RangeValue, UploadedFile } from "./questions"
+import type { InspirationValue, ListItem, Question, RangeValue, UploadedFile } from "./questions"
 
 function StoredImage({
   storageId,
@@ -431,7 +431,81 @@ export function SingleSelect({
   )
 }
 
-function formatNumber(n: number, format?: "currency") {
+export function MultiSelect({
+  q,
+  value,
+  onChange,
+}: {
+  q: Extract<Question, { kind: "multi_select" }>
+  value: string[]
+  onChange: (v: string[]) => void
+}) {
+  const toggle = (v: string) =>
+    onChange(value.includes(v) ? value.filter((x) => x !== v) : [...value, v])
+
+  const otherEntry = value.find((v) => v.startsWith("other:"))
+  const otherText = otherEntry ? otherEntry.slice("other:".length) : ""
+  const isOtherSelected = otherEntry !== undefined
+
+  const toggleOther = () => {
+    if (isOtherSelected) {
+      onChange(value.filter((v) => !v.startsWith("other:")))
+    } else {
+      onChange([...value, "other:"])
+    }
+  }
+
+  const updateOtherText = (text: string) => {
+    onChange([...value.filter((v) => !v.startsWith("other:")), `other:${text}`])
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap gap-2">
+        {q.options.map((opt) => {
+          const active = value.includes(opt.value)
+          return (
+            <button
+              key={opt.value}
+              onClick={() => toggle(opt.value)}
+              className={`border px-4 py-2 text-base font-light tracking-tight transition-colors ${
+                active
+                  ? "border-fg bg-fg text-bg"
+                  : "border-rule text-muted hover:border-fg hover:text-fg"
+              }`}
+            >
+              {opt.label}
+            </button>
+          )
+        })}
+        {q.allowOther && (
+          <button
+            onClick={toggleOther}
+            className={`border px-4 py-2 text-base font-light tracking-tight transition-colors ${
+              isOtherSelected
+                ? "border-fg bg-fg text-bg"
+                : "border-rule text-muted hover:border-fg hover:text-fg"
+            }`}
+          >
+            {q.allowOther.label}
+          </button>
+        )}
+      </div>
+      {isOtherSelected && q.allowOther && (
+        <input
+          autoFocus
+          type="text"
+          value={otherText}
+          placeholder={q.allowOther.placeholder}
+          onChange={(e) => updateOtherText(e.target.value)}
+          className="border-b border-rule bg-transparent pb-2 text-lg font-light tracking-tight text-fg placeholder:text-muted focus:outline-none"
+        />
+      )}
+    </div>
+  )
+}
+
+export function formatNumber(n: number, format?: "currency") {
   if (format === "currency") {
     if (n >= 1000) {
       const k = n / 1000
@@ -553,6 +627,7 @@ export function RangeSlider({
 }
 
 export function ListField({
+  q,
   value,
   onChange,
   noun,
@@ -565,7 +640,7 @@ export function ListField({
   const update = (id: string, patch: Partial<ListItem>) =>
     onChange(value.map((it) => (it.id === id ? { ...it, ...patch } : it)))
   const remove = (id: string) => onChange(value.filter((it) => it.id !== id))
-  const add = () => onChange([...value, { id: crypto.randomUUID(), name: "", description: "" }])
+  const add = () => onChange([...value, { id: crypto.randomUUID(), name: "", description: "", itemType: undefined }])
 
   return (
     <div className="flex flex-col gap-4">
@@ -601,6 +676,23 @@ export function ListField({
             rows={2}
             className="ml-9 w-[calc(100%-2.25rem)] resize-none bg-transparent pb-1 text-sm font-light text-fg placeholder:text-muted focus:outline-none"
           />
+          {q.showItemType && (
+            <div className="ml-9 flex gap-1">
+              {(["service", "product"] as const).map((type) => (
+                <button
+                  key={type}
+                  onClick={() => update(item.id, { itemType: type })}
+                  className={`font-mono border px-3 py-1 text-xs uppercase tracking-widest transition-colors ${
+                    item.itemType === type
+                      ? "border-fg bg-fg text-bg"
+                      : "border-rule text-muted hover:border-fg hover:text-fg"
+                  }`}
+                >
+                  {type}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       ))}
       <button
@@ -614,35 +706,244 @@ export function ListField({
   )
 }
 
-export function MultiSelect({
+export function LinkListField({
   q,
   value,
   onChange,
 }: {
-  q: Extract<Question, { kind: "multi_select" }>
+  q: Extract<Question, { kind: "link_list" }>
   value: string[]
   onChange: (v: string[]) => void
 }) {
-  const toggle = (v: string) =>
-    onChange(value.includes(v) ? value.filter((x) => x !== v) : [...value, v])
+  const [draft, setDraft] = useState("")
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const add = () => {
+    const url = draft.trim()
+    if (!url) return
+    onChange([...value, url])
+    setDraft("")
+    setTimeout(() => inputRef.current?.focus(), 0)
+  }
+
+  const remove = (i: number) => onChange(value.filter((_, idx) => idx !== i))
+
   return (
-    <div className="flex flex-wrap gap-2">
-      {q.options.map((opt) => {
-        const active = value.includes(opt.value)
-        return (
+    <div className="flex flex-col gap-4">
+      {value.length > 0 && (
+        <div className="flex flex-col gap-2">
+          {value.map((link, i) => (
+            <div key={i} className="group flex items-center gap-3 border-b border-rule pb-2">
+              <span className="font-mono w-6 shrink-0 text-xs uppercase tracking-widest text-muted">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <span className="flex-1 truncate font-light text-fg">{link}</span>
+              <button
+                onClick={() => remove(i)}
+                aria-label="Remove"
+                className="shrink-0 text-muted opacity-0 transition-opacity group-hover:opacity-100 hover:text-fg"
+              >
+                <X size={14} weight="regular" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="flex items-center gap-3">
+        <input
+          ref={inputRef}
+          autoFocus
+          type="url"
+          value={draft}
+          placeholder={q.placeholder ?? "https://…"}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault()
+              add()
+            }
+          }}
+          className="flex-1 border-b border-rule bg-transparent pb-2 text-xl font-light tracking-tight text-fg placeholder:text-muted focus:outline-none"
+        />
+        {draft.trim() && (
           <button
-            key={opt.value}
-            onClick={() => toggle(opt.value)}
-            className={`border px-4 py-2 text-base font-light tracking-tight transition-colors ${
-              active
-                ? "border-fg bg-fg text-bg"
-                : "border-rule text-muted hover:border-fg hover:text-fg"
-            }`}
+            onClick={add}
+            className="shrink-0 border border-rule p-1 text-muted transition-colors hover:border-fg hover:text-fg"
           >
-            {opt.label}
+            <Plus size={14} weight="regular" />
           </button>
-        )
-      })}
+        )}
+      </div>
+      <p className="font-mono text-xs uppercase tracking-widest text-muted">
+        Press enter to add each link
+      </p>
+    </div>
+  )
+}
+
+export function InspirationField({
+  value,
+  onChange,
+}: {
+  q: Extract<Question, { kind: "inspiration" }>
+  value: InspirationValue
+  onChange: (v: InspirationValue) => void
+}) {
+  const [draft, setDraft] = useState("")
+  const inputRef = useRef<HTMLInputElement>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
+  const [pending, setPending] = useState(0)
+  const [error, setError] = useState<string | null>(null)
+  const generateUploadUrl = useMutation(api.files.generateUploadUrl)
+
+  const uploadOne = async (file: File): Promise<UploadedFile> => {
+    const uploadUrl = await generateUploadUrl()
+    const res = await fetch(uploadUrl, {
+      method: "POST",
+      headers: { "Content-Type": file.type },
+      body: file,
+    })
+    if (!res.ok) throw new Error(`Upload failed: ${res.status}`)
+    const { storageId } = (await res.json()) as { storageId: string }
+    return {
+      key: `${file.name}-${file.size}-${file.lastModified}`,
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      storageId,
+    }
+  }
+
+  const handleFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0) return
+    setError(null)
+    const list = Array.from(files)
+    setPending((p) => p + list.length)
+    try {
+      const uploaded = await Promise.all(list.map(uploadOne))
+      onChange({ ...value, files: [...value.files, ...uploaded] })
+    } catch (e: any) {
+      setError(e?.message ?? "Upload failed")
+    } finally {
+      setPending((p) => p - list.length)
+    }
+  }
+
+  const removeFile = (i: number) =>
+    onChange({ ...value, files: value.files.filter((_, idx) => idx !== i) })
+
+  const addLink = () => {
+    const url = draft.trim()
+    if (!url) return
+    onChange({ ...value, links: [...value.links, url] })
+    setDraft("")
+    setTimeout(() => inputRef.current?.focus(), 0)
+  }
+
+  const removeLink = (i: number) =>
+    onChange({ ...value, links: value.links.filter((_, idx) => idx !== i) })
+
+  return (
+    <div className="flex flex-col gap-10">
+      <div className="flex flex-col gap-4">
+        <div className="font-mono text-xs uppercase tracking-widest text-muted">Screenshots</div>
+        <div
+          onClick={() => fileRef.current?.click()}
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => {
+            e.preventDefault()
+            handleFiles(e.dataTransfer.files)
+          }}
+          className="cursor-pointer border border-rule px-6 py-8 text-center transition-colors hover:border-fg"
+        >
+          <div className="flex flex-col items-center gap-3 text-muted">
+            <UploadSimple size={20} weight="regular" />
+            <span className="font-mono text-xs uppercase tracking-widest">
+              {pending > 0 ? `Uploading ${pending}...` : "Drop images or click to browse"}
+            </span>
+          </div>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={(e) => handleFiles(e.target.files)}
+          />
+        </div>
+        {error && (
+          <div className="font-mono text-xs uppercase tracking-widest text-fg">{error}</div>
+        )}
+        {value.files.length > 0 && (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {value.files.map((f, i) => (
+              <div key={f.key} className="group relative aspect-square">
+                <StoredImage
+                  storageId={f.storageId}
+                  alt={f.name}
+                  className="h-full w-full border border-rule object-cover"
+                />
+                <button
+                  onClick={() => removeFile(i)}
+                  className="font-mono absolute right-1 top-1 bg-fg px-2 py-0.5 text-xs uppercase tracking-widest text-bg opacity-0 transition-opacity group-hover:opacity-100"
+                >
+                  remove
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-4">
+        <div className="font-mono text-xs uppercase tracking-widest text-muted">Links</div>
+        {value.links.length > 0 && (
+          <div className="flex flex-col gap-2">
+            {value.links.map((link, i) => (
+              <div key={i} className="group flex items-center gap-3 border-b border-rule pb-2">
+                <span className="font-mono w-6 shrink-0 text-xs uppercase tracking-widest text-muted">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <span className="flex-1 truncate font-light text-fg">{link}</span>
+                <button
+                  onClick={() => removeLink(i)}
+                  aria-label="Remove"
+                  className="shrink-0 text-muted opacity-0 transition-opacity group-hover:opacity-100 hover:text-fg"
+                >
+                  <X size={14} weight="regular" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="flex items-center gap-3">
+          <input
+            ref={inputRef}
+            type="url"
+            value={draft}
+            placeholder="https://…"
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault()
+                addLink()
+              }
+            }}
+            className="flex-1 border-b border-rule bg-transparent pb-2 text-xl font-light tracking-tight text-fg placeholder:text-muted focus:outline-none"
+          />
+          {draft.trim() && (
+            <button
+              onClick={addLink}
+              className="shrink-0 border border-rule p-1 text-muted transition-colors hover:border-fg hover:text-fg"
+            >
+              <Plus size={14} weight="regular" />
+            </button>
+          )}
+        </div>
+        <p className="font-mono text-xs uppercase tracking-widest text-muted">
+          Press enter to add each link
+        </p>
+      </div>
     </div>
   )
 }

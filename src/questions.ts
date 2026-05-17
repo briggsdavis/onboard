@@ -48,6 +48,7 @@ export type Question =
       prompt: string
       hint?: string
       options: { value: string; label: string; blurb?: string }[]
+      allowOther?: { label: string; placeholder?: string }
       required?: boolean
     }
   | {
@@ -68,7 +69,29 @@ export type Question =
       hint?: string
       itemNoun: string
       itemNounSource?: { answerId: string; map: Record<string, { prompt: string; noun: string }> }
+      showItemType?: boolean
       required?: boolean
+    }
+  | {
+      id: string
+      kind: "link_list"
+      prompt: string
+      hint?: string
+      placeholder?: string
+      required?: boolean
+    }
+  | {
+      id: string
+      kind: "inspiration"
+      prompt: string
+      hint?: string
+      required?: boolean
+    }
+  | {
+      id: string
+      kind: "review"
+      prompt: string
+      hint?: string
     }
 
 export type UploadedFile = {
@@ -81,9 +104,11 @@ export type UploadedFile = {
 
 export type RangeValue = [number, number]
 
-export type ListItem = { id: string; name: string; description: string }
+export type ListItem = { id: string; name: string; description: string; itemType?: "service" | "product" }
 
-export type AnswerValue = string | string[] | UploadedFile[] | RangeValue | ListItem[]
+export type InspirationValue = { files: UploadedFile[]; links: string[] }
+
+export type AnswerValue = string | string[] | UploadedFile[] | RangeValue | ListItem[] | InspirationValue
 
 export type Answers = Record<string, AnswerValue>
 
@@ -98,10 +123,11 @@ export const questions: Question[] = [
   },
   {
     id: "business_what",
-    kind: "long_text",
-    prompt: "In a few sentences, what do you sell?",
-    hint: "Imagine telling a stranger at a dinner party.",
-    placeholder: "We sell…",
+    kind: "list",
+    prompt: "What do you sell?",
+    hint: "Add each product or service — give it a name, an optional description, and mark it as a product or service.",
+    itemNoun: "offering",
+    showItemType: true,
     required: true,
   },
   {
@@ -132,6 +158,24 @@ export const questions: Question[] = [
     required: true,
   },
   {
+    id: "branding",
+    kind: "single_select",
+    prompt: "How much branding do you have?",
+    hint: "Be honest — we work with whatever you've got.",
+    options: [
+      { value: "nothing", label: "Nothing at all", blurb: "Starting from scratch." },
+      { value: "logo", label: "Just a logo", blurb: "A logo file, maybe a font or two." },
+      {
+        value: "basic",
+        label: "Some basic ideas",
+        blurb: "Mood boards, color preferences, rough direction.",
+      },
+      { value: "full", label: "Full brand kit", blurb: "Guidelines, fonts, colors, everything." },
+    ],
+    allowOther: { label: "Other", placeholder: "Describe what you have…" },
+    required: true,
+  },
+  {
     id: "logo",
     kind: "file_upload",
     prompt: "Upload your logo, if you have one.",
@@ -155,25 +199,16 @@ export const questions: Question[] = [
     multiple: true,
   },
   {
-    id: "inspiration_shots",
-    kind: "file_upload",
-    prompt: "Screenshots of sites you like?",
-    hint: "Drop in any captures that show the look or feel you're after.",
-    multiple: true,
-    accept: "image/*",
-  },
-  {
-    id: "inspiration_links",
-    kind: "long_text",
-    prompt: "Links to sites you like?",
-    hint: "One per line. A note on what you like about each helps.",
-    placeholder: "https://…",
+    id: "inspiration",
+    kind: "inspiration",
+    prompt: "Sites you like?",
+    hint: "Drop screenshots and paste links to sites that capture the look or feel you're after.",
   },
   {
     id: "competitors",
-    kind: "long_text",
+    kind: "link_list",
     prompt: "Links to competitors?",
-    hint: "One per line. Anyone you're benchmarking against or want to differentiate from.",
+    hint: "Anyone you're benchmarking against or want to differentiate from.",
     placeholder: "https://…",
   },
   {
@@ -190,6 +225,7 @@ export const questions: Question[] = [
       { value: "booking", label: "Booking" },
       { value: "menu", label: "Menu" },
     ],
+    allowOther: { label: "Other", placeholder: "Describe the page…" },
     required: true,
   },
   {
@@ -206,6 +242,7 @@ export const questions: Question[] = [
       { value: "auth", label: "Login / accounts" },
       { value: "analytics", label: "Analytics" },
     ],
+    allowOther: { label: "Other", placeholder: "Describe the feature…" },
   },
   {
     id: "budget",
@@ -229,5 +266,16 @@ export const questions: Question[] = [
     kind: "long_text",
     prompt: "Anything else we should know?",
     placeholder: "References, must-haves, things to avoid…",
+  },
+  {
+    id: "questions_for_us",
+    kind: "long_text",
+    prompt: "Do you have any questions for us?",
+    placeholder: "Ask away…",
+  },
+  {
+    id: "review",
+    kind: "review",
+    prompt: "Here's what you've shared.",
   },
 ]
