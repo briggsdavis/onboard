@@ -56,11 +56,7 @@ function isEmpty(v: AnswerValue) {
   return v.length === 0
 }
 
-type SubmitState =
-  | { kind: "idle" }
-  | { kind: "submitting" }
-  | { kind: "success" }
-  | { kind: "error" }
+type SubmitState = { kind: "idle" } | { kind: "success" } | { kind: "error" }
 
 export default function App() {
   const [{ answers, index }, setState] = useState<Saved>(() => loadSaved())
@@ -162,10 +158,11 @@ export default function App() {
   }
 
   const submit = async () => {
-    setSubmitState({ kind: "submitting" })
     try {
+      const known = new Set(questions.map((q) => q.id))
+      const filtered = Object.fromEntries(Object.entries(answers).filter(([k]) => known.has(k)))
       await submitMutation({
-        answers,
+        ...filtered,
         submittedAt: new Date().toISOString(),
       })
       localStorage.removeItem(STORAGE_KEY)
@@ -174,19 +171,6 @@ export default function App() {
       console.error("[submit]", e)
       setSubmitState({ kind: "error" })
     }
-  }
-
-  if (submitState.kind === "submitting") {
-    return (
-      <main className="mx-auto flex min-h-screen max-w-3xl items-center px-6 sm:px-10">
-        <div className="flex flex-col gap-4">
-          <div className="font-mono text-xs uppercase tracking-widest text-muted">
-            Building your preview
-          </div>
-          <h1 className="text-4xl font-light tracking-tight sm:text-5xl">One moment.</h1>
-        </div>
-      </main>
-    )
   }
 
   if (submitState.kind === "success") {
