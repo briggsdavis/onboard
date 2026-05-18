@@ -71,6 +71,7 @@ function isEmpty(v: AnswerValue) {
 type SubmitState = { kind: "idle" } | { kind: "success" } | { kind: "error" }
 
 export default function App() {
+  const [welcomed, setWelcomed] = useState(false)
   const [{ answers, index }, setState] = useState<Saved>(() => loadSaved())
   const [submitState, setSubmitState] = useState<SubmitState>({ kind: "idle" })
   const submitMutation = useMutation(api.submissions.submit)
@@ -187,6 +188,29 @@ export default function App() {
     }
   }
 
+  if (!welcomed) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center px-8 py-16">
+        <div className="mx-auto w-full max-w-xl flex flex-col gap-10">
+          <div className="flex flex-col gap-6">
+            <h1 className="text-5xl font-light tracking-tight sm:text-6xl">Welcome.</h1>
+            <p className="text-lg font-light text-muted leading-relaxed max-w-sm">
+              We're so glad you're here. Tell us everything about your brand — the more we know,
+              the better we can bring your vision to life.
+            </p>
+          </div>
+          <button
+            onClick={() => setWelcomed(true)}
+            className="flex items-center gap-2 self-start font-mono text-xs uppercase tracking-widest text-fg transition-opacity hover:opacity-70"
+          >
+            Let's begin
+            <ArrowRight size={14} weight="regular" />
+          </button>
+        </div>
+      </main>
+    )
+  }
+
   if (submitState.kind === "success") {
     return (
       <main className="flex min-h-screen">
@@ -229,24 +253,28 @@ export default function App() {
     )
   }
 
-  return (
-    <main className="flex min-h-screen">
-      {/* Left: question content */}
-      <section className="flex w-full flex-col justify-center lg:w-1/2">
-        <div className="mx-auto w-full max-w-xl px-8 py-16 sm:px-10">
-          <div
-            key={isDisplayReview ? "__review__" : q.id}
-            className={`flex flex-col gap-8 ${phase === "out" ? "animate-question-out" : "animate-question-in"}`}
-          >
-            <div className="font-mono text-xs uppercase tracking-widest text-muted">
-              {isDisplayReview
-                ? "Review"
-                : `${String(displayIndex + 1).padStart(2, "0")} / ${String(total).padStart(2, "0")}`}
-            </div>
+  // Progress: front-loaded curve so early questions feel fast
+  const progressFraction = isDisplayReview ? 1 : (displayIndex + 1) / (total + 1)
+  const progress = Math.pow(progressFraction, 0.6)
 
-            <h1 className="text-4xl font-light tracking-tight sm:text-5xl">
-              {isDisplayReview ? "Review your answers." : prompt}
-            </h1>
+  return (
+    <main className="flex min-h-screen flex-col">
+      <div className="flex flex-1">
+      {/* Left: question content */}
+      <section className="flex w-full flex-col lg:w-1/2">
+        <div className="flex flex-1 flex-col justify-center">
+          <div className="mx-auto w-full max-w-xl px-8 py-16 sm:px-10">
+            <div
+              key={isDisplayReview ? "__review__" : q.id}
+              className={`flex flex-col gap-8 ${phase === "out" ? "animate-question-out" : "animate-question-in"}`}
+            >
+              {isDisplayReview && (
+                <div className="font-mono text-xs uppercase tracking-widest text-muted">Review</div>
+              )}
+
+              <h1 className="text-4xl font-light tracking-tight sm:text-5xl">
+                {isDisplayReview ? "Review your answers." : prompt}
+              </h1>
 
             {isDisplayReview ? (
               <ReviewSummary answers={answers} onEdit={(i) => setState((s) => ({ ...s, index: i }))} />
@@ -280,6 +308,7 @@ export default function App() {
               </button>
             </div>
           </div>
+          </div>
         </div>
       </section>
 
@@ -292,6 +321,15 @@ export default function App() {
           <QuestionGraphic index={displayIndex} isReview={isDisplayReview} />
         </div>
       </aside>
+      </div>
+
+      {/* Full-width progress bar */}
+      <div className="relative h-px w-full bg-rule">
+        <div
+          className="absolute inset-y-0 left-0 bg-fg transition-[width] duration-500 ease-out"
+          style={{ width: `${progress * 100}%` }}
+        />
+      </div>
     </main>
   )
 }

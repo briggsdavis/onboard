@@ -5,13 +5,16 @@ import "@fontsource-variable/geist"
 import "@fontsource-variable/geist-mono"
 import "./index.css"
 import App from "./app.tsx"
+import Admin from "./admin.tsx"
 
 const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string)
+
+const isAdmin = window.location.pathname.startsWith("/admin")
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ConvexProvider client={convex}>
-      <App />
+      {isAdmin ? <Admin /> : <App />}
     </ConvexProvider>
   </StrictMode>,
 )
