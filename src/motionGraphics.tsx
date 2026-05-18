@@ -552,7 +552,7 @@ function G15() {
   const lines = [80, 104, 128, 152, 176]
   return (
     <Wrap>
-      {lines.map((y, i) => (
+      {lines.map((y) => (
         <line key={y} x1="50" y1={y} x2="210" y2={y} stroke={RULE} strokeWidth="1" />
       ))}
       {/* Text appearing on lines */}
