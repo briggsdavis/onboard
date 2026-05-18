@@ -24,16 +24,19 @@ function Wrap({ children }: { children: React.ReactNode }) {
 function G01() {
   return (
     <Wrap>
-      <line x1="40" y1="148" x2="220" y2="148" stroke={RULE} strokeWidth="1" />
-      <text x="40" y="140" fontFamily={MONO} fontSize="8" fill={MUTED} letterSpacing="3">
+      {/* Label above */}
+      <text x="40" y="100" fontFamily={MONO} fontSize="8" fill={MUTED} letterSpacing="3">
         BUSINESS NAME
       </text>
-      <text x="40" y="138" fontFamily="Geist Variable, sans-serif" fontSize="36" fontWeight="200" fill={FG} letterSpacing="-1">
+      {/* Name text */}
+      <text x="40" y="148" fontFamily="Geist Variable, sans-serif" fontSize="36" fontWeight="200" fill={FG} letterSpacing="-1">
         <animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.1;0.25;0.8;1" dur="4s" repeatCount="indefinite" />
         Cedar &amp; Stone
       </text>
+      {/* Baseline */}
+      <line x1="40" y1="158" x2="220" y2="158" stroke={RULE} strokeWidth="1" />
       {/* Blinking cursor */}
-      <rect x="42" y="112" width="2" height="30" fill={FG}>
+      <rect x="42" y="118" width="2" height="32" fill={FG}>
         <animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.45;0.5;1" dur="1s" repeatCount="indefinite" />
         <animate attributeName="x" values="42;42;196;196" keyTimes="0;0.1;0.6;1" dur="4s" repeatCount="indefinite" />
       </rect>
