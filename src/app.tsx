@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
+import { QuestionGraphic } from "./motionGraphics"
 import { ArrowLeft, ArrowRight } from "@phosphor-icons/react"
 import { useMutation, useQuery } from "convex/react"
 import { api } from "../convex/_generated/api"
@@ -188,11 +189,13 @@ export default function App() {
 
   if (submitState.kind === "success") {
     return (
-      <main className="mx-auto flex min-h-screen max-w-3xl items-center px-6 sm:px-10">
-        <div className="flex flex-col gap-6">
-          <h1 className="text-4xl font-light tracking-tight sm:text-5xl">Thank you.</h1>
-          <div className="font-mono text-xs uppercase tracking-widest text-muted">
-            Your responses have been saved.
+      <main className="flex min-h-screen">
+        <div className="flex flex-1 flex-col justify-center px-8 py-16 lg:px-16">
+          <div className="mx-auto w-full max-w-xl flex flex-col gap-6">
+            <h1 className="text-4xl font-light tracking-tight sm:text-5xl">Thank you.</h1>
+            <div className="font-mono text-xs uppercase tracking-widest text-muted">
+              Your responses have been saved.
+            </div>
           </div>
         </div>
       </main>
@@ -201,77 +204,94 @@ export default function App() {
 
   if (submitState.kind === "error") {
     return (
-      <main className="mx-auto flex min-h-screen max-w-3xl items-center px-6 sm:px-10">
-        <div className="flex flex-col gap-6">
-          <div className="font-mono text-xs uppercase tracking-widest text-muted">
-            Something went wrong
+      <main className="flex min-h-screen">
+        <div className="flex flex-1 flex-col justify-center px-8 py-16 lg:px-16">
+          <div className="mx-auto w-full max-w-xl flex flex-col gap-6">
+            <div className="font-mono text-xs uppercase tracking-widest text-muted">
+              Something went wrong
+            </div>
+            <h1 className="text-4xl font-light tracking-tight sm:text-5xl">
+              We couldn't build your preview.
+            </h1>
+            <p className="max-w-md text-sm text-muted">
+              Your answers are saved. Give it another try.
+            </p>
+            <button
+              onClick={submit}
+              className="flex items-center gap-2 self-start font-mono text-xs uppercase tracking-widest text-fg transition-opacity hover:opacity-70"
+            >
+              Try again
+              <ArrowRight size={14} weight="regular" />
+            </button>
           </div>
-          <h1 className="text-4xl font-light tracking-tight sm:text-5xl">
-            We couldn't build your preview.
-          </h1>
-          <p className="max-w-md text-sm text-muted">
-            Your answers are saved. Give it another try.
-          </p>
-          <button
-            onClick={submit}
-            className="flex items-center gap-2 self-start font-mono text-xs uppercase tracking-widest text-fg transition-opacity hover:opacity-70"
-          >
-            Try again
-            <ArrowRight size={14} weight="regular" />
-          </button>
         </div>
       </main>
     )
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center gap-8 px-6 sm:px-10 py-16">
-      <div
-        key={isDisplayReview ? "__review__" : q.id}
-        className={`flex flex-col gap-8 ${phase === "out" ? "animate-question-out" : "animate-question-in"}`}
-      >
-        <div className="font-mono text-xs uppercase tracking-widest text-muted">
-          {isDisplayReview
-            ? "Review"
-            : `${String(displayIndex + 1).padStart(2, "0")} / ${String(total).padStart(2, "0")}`}
-        </div>
-
-        <h1 className="text-4xl font-light tracking-tight sm:text-5xl">
-          {isDisplayReview ? "Review your answers." : prompt}
-        </h1>
-
-        {isDisplayReview ? (
-          <ReviewSummary answers={answers} onEdit={(i) => setState((s) => ({ ...s, index: i }))} />
-        ) : (
-          <Field
-            q={q}
-            value={value}
-            setValue={setValue}
-            onSubmit={next}
-            suggested={suggested}
-            listNoun={listNoun}
-          />
-        )}
-
-        <div className="flex items-center gap-6 pt-2">
-          <button
-            onClick={prev}
-            disabled={index === 0}
-            className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-fg transition-opacity hover:opacity-70 disabled:opacity-15"
+    <main className="flex min-h-screen">
+      {/* Left: question content */}
+      <section className="flex w-full flex-col justify-center lg:w-1/2">
+        <div className="mx-auto w-full max-w-xl px-8 py-16 sm:px-10">
+          <div
+            key={isDisplayReview ? "__review__" : q.id}
+            className={`flex flex-col gap-8 ${phase === "out" ? "animate-question-out" : "animate-question-in"}`}
           >
-            <ArrowLeft size={14} weight="regular" />
-            Back
-          </button>
-          <button
-            onClick={next}
-            disabled={!canAdvance}
-            className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-fg transition-opacity hover:opacity-70 disabled:opacity-15"
-          >
-            {isReview ? "Submit" : "Next"}
-            <ArrowRight size={14} weight="regular" />
-          </button>
+            <div className="font-mono text-xs uppercase tracking-widest text-muted">
+              {isDisplayReview
+                ? "Review"
+                : `${String(displayIndex + 1).padStart(2, "0")} / ${String(total).padStart(2, "0")}`}
+            </div>
+
+            <h1 className="text-4xl font-light tracking-tight sm:text-5xl">
+              {isDisplayReview ? "Review your answers." : prompt}
+            </h1>
+
+            {isDisplayReview ? (
+              <ReviewSummary answers={answers} onEdit={(i) => setState((s) => ({ ...s, index: i }))} />
+            ) : (
+              <Field
+                q={q}
+                value={value}
+                setValue={setValue}
+                onSubmit={next}
+                suggested={suggested}
+                listNoun={listNoun}
+              />
+            )}
+
+            <div className="flex items-center gap-6 pt-2">
+              <button
+                onClick={prev}
+                disabled={index === 0}
+                className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-fg transition-opacity hover:opacity-70 disabled:opacity-15"
+              >
+                <ArrowLeft size={14} weight="regular" />
+                Back
+              </button>
+              <button
+                onClick={next}
+                disabled={!canAdvance}
+                className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-fg transition-opacity hover:opacity-70 disabled:opacity-15"
+              >
+                {isReview ? "Submit" : "Next"}
+                <ArrowRight size={14} weight="regular" />
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
+
+      {/* Right: motion graphic */}
+      <aside className="hidden lg:flex lg:w-1/2 items-center justify-center border-l border-rule">
+        <div
+          key={isDisplayReview ? "__review__" : q?.id}
+          className={`flex items-center justify-center p-8 w-full h-full ${phase === "out" ? "animate-graphic-out" : "animate-graphic-in"}`}
+        >
+          <QuestionGraphic index={displayIndex} isReview={isDisplayReview} />
+        </div>
+      </aside>
     </main>
   )
 }

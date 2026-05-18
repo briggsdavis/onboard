@@ -35,6 +35,8 @@
 @theme {
   --animate-question-in: question-in 300ms cubic-bezier(0.65, 0, 0.35, 1) both;
   --animate-question-out: question-out 200ms cubic-bezier(0.65, 0, 0.35, 1) both;
+  --animate-graphic-in: graphic-in 350ms cubic-bezier(0.65, 0, 0.35, 1) both;
+  --animate-graphic-out: graphic-out 220ms cubic-bezier(0.65, 0, 0.35, 1) both;
 
   @keyframes question-in {
     from {
@@ -55,6 +57,28 @@
     to {
       opacity: 0;
       transform: translateY(-8px);
+    }
+  }
+
+  @keyframes graphic-in {
+    from {
+      opacity: 0;
+      transform: scale(0.94);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes graphic-out {
+    from {
+      opacity: 1;
+      transform: scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: scale(0.94);
     }
   }
 }
