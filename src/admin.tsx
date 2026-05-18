@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { Component, useState, type ReactNode } from "react"
 import { useQuery } from "convex/react"
 import { api } from "../convex/_generated/api"
 import type { Id } from "../convex/_generated/dataModel"
@@ -7,15 +7,40 @@ import { questions } from "./questions"
 
 const MONO = "font-mono text-xs uppercase tracking-widest"
 
-function formatDate(submittedAt: string) {
-  return new Date(submittedAt).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  })
+class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
+  state = { error: null }
+  static getDerivedStateFromError(error: Error) {
+    return { error }
+  }
+  render() {
+    if (this.state.error) {
+      const msg = (this.state.error as Error).message
+      return (
+        <main className="min-h-screen px-8 py-16 sm:px-12 lg:px-20">
+          <div className="mx-auto max-w-2xl flex flex-col gap-4">
+            <div className={`${MONO} text-muted`}>Admin — error</div>
+            <p className="font-light text-muted text-sm">{msg}</p>
+          </div>
+        </main>
+      )
+    }
+    return this.props.children
+  }
 }
 
-function formatField(id: string, value: unknown): string {
+function formatDate(submittedAt: string) {
+  try {
+    return new Date(submittedAt).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    })
+  } catch {
+    return submittedAt
+  }
+}
+
+function formatField(_id: string, value: unknown): string {
   if (value === null || value === undefined) return "—"
 
   if (typeof value === "string") {
@@ -36,11 +61,11 @@ function formatField(id: string, value: unknown): string {
       if ("kind" in first && "name" in first)
         return (value as any[])
           .filter((o) => o.name?.trim())
-          .map((o) => `${o.name} (${o.kind})`)
+          .map((o: any) => `${o.name} (${o.kind})`)
           .join(", ")
       if ("name" in first)
         return (value as any[])
-          .map((i) => i.name)
+          .map((i: any) => i.name)
           .filter(Boolean)
           .join(", ")
     }
@@ -116,7 +141,14 @@ function AdminDetail({ id, onBack }: { id: string; onBack: () => void }) {
   if (submission === undefined) {
     return (
       <main className="min-h-screen px-8 py-16 sm:px-12 lg:px-20">
-        <div className="mx-auto max-w-2xl">
+        <div className="mx-auto max-w-2xl flex flex-col gap-8">
+          <button
+            onClick={onBack}
+            className={`${MONO} text-muted flex items-center gap-2 hover:text-fg transition-colors self-start`}
+          >
+            <ArrowLeft size={12} />
+            Back
+          </button>
           <div className={`${MONO} text-muted`}>Loading…</div>
         </div>
       </main>
@@ -183,11 +215,19 @@ function AdminDetail({ id, onBack }: { id: string; onBack: () => void }) {
   )
 }
 
-export default function Admin() {
+function AdminInner() {
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
   if (selectedId) {
     return <AdminDetail id={selectedId} onBack={() => setSelectedId(null)} />
   }
   return <AdminList onSelect={setSelectedId} />
+}
+
+export default function Admin() {
+  return (
+    <ErrorBoundary>
+      <AdminInner />
+    </ErrorBoundary>
+  )
 }
