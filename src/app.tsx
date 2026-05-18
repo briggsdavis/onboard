@@ -287,7 +287,7 @@ export default function App() {
       <aside className="hidden lg:flex lg:w-1/2 items-center justify-center border-l border-rule">
         <div
           key={isDisplayReview ? "__review__" : q?.id}
-          className={`flex items-center justify-center p-12 w-full h-full ${phase === "out" ? "animate-graphic-out" : "animate-graphic-in"}`}
+          className={`flex items-center justify-center p-8 w-full h-full ${phase === "out" ? "animate-graphic-out" : "animate-graphic-in"}`}
         >
           <QuestionGraphic index={displayIndex} isReview={isDisplayReview} />
         </div>

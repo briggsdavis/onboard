@@ -13,7 +13,7 @@ function Wrap({ children }: { children: React.ReactNode }) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
-      className="w-full h-full max-w-[260px] max-h-[260px]"
+      className="w-full h-full max-w-[390px] max-h-[390px]"
     >
       {children}
     </svg>
