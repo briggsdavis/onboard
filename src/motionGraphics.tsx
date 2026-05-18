@@ -175,71 +175,90 @@ function G04() {
   )
 }
 
-// Q5: Branding — brand kit building up layer by layer
+// Q5: Branding — canvas fills with brand identity elements phase by phase
 function G05() {
-  const dur = 7.2 // 1.8s per level: none → logo → some → full
-
-  // Shared timing for each phase
-  const p = (phase: number) => ({
-    s: phase / 4,
-    in: phase / 4 + 0.04,
-    out: (phase + 0.85) / 4,
-    e: (phase + 1) / 4,
-  })
-
-  const ph = [p(0), p(1), p(2), p(3)]
+  const dur = 8.0
 
   return (
     <Wrap>
       {/* Canvas frame */}
-      <rect x="60" y="60" width="140" height="140" stroke={RULE} strokeWidth="1" />
+      <rect x="75" y="62" width="110" height="136" stroke={RULE} strokeWidth="1" fill="none" />
 
-      {/* LOGO MARK — appears at phase 1+ */}
-      {/* Outer circle of mark */}
-      <circle cx="130" cy="108" r="0" stroke={FG} strokeWidth="1.5" fill="none">
-        <animate attributeName="r" values={`0;0;22;22;22;22;22;22;0`}
-          keyTimes={`0;${ph[0].out};${ph[1].in};${ph[1].s+0.5};${ph[2].in};${ph[2].s+0.5};${ph[3].in};${ph[3].out};1`}
+      {/* NONE: blinking cursor in corner */}
+      <rect x="81" y="68" width="2" height="10" fill={MUTED} opacity="0">
+        <animate attributeName="opacity"
+          values="0;1;0;1;0;1;0;0;0"
+          keyTimes="0;0.04;0.08;0.12;0.16;0.20;0.24;0.25;1"
           dur={`${dur}s`} repeatCount="indefinite" />
-        <animate attributeName="opacity" values={`0;0;1;1;1;1;1;1;0`}
-          keyTimes={`0;${ph[0].out};${ph[1].in};${ph[1].s+0.5};${ph[2].in};${ph[2].s+0.5};${ph[3].in};${ph[3].out};1`}
-          dur={`${dur}s`} repeatCount="indefinite" />
+      </rect>
+
+      {/* LOGO: circle draws itself in */}
+      <circle cx="130" cy="110" r="26" stroke={FG} strokeWidth="1.5" fill="none"
+        strokeDasharray="163.4" strokeDashoffset="163.4">
+        <animate attributeName="strokeDashoffset"
+          values="163.4;163.4;0;0;0;0;163.4"
+          keyTimes="0;0.25;0.38;0.5;0.75;0.95;1"
+          dur={`${dur}s`} repeatCount="indefinite"
+          calcMode="spline"
+          keySplines="1 0 1 0;0.3 0 0.1 1;1 0 1 0;1 0 1 0;0.4 0 0.2 1;1 0 1 0" />
       </circle>
-      {/* Inner diamond of mark */}
-      <polygon points="130,90 146,108 130,126 114,108" stroke={FG} strokeWidth="1" fill="none" opacity="0">
-        <animate attributeName="opacity" values={`0;0;0.7;0.7;0.7;0.7;0.7;0.7;0`}
-          keyTimes={`0;${ph[0].out};${ph[1].in};${ph[1].s+0.5};${ph[2].in};${ph[2].s+0.5};${ph[3].in};${ph[3].out};1`}
+      {/* inner horizontal crosshair */}
+      <line x1="116" y1="110" x2="144" y2="110" stroke={FG} strokeWidth="0.75" opacity="0">
+        <animate attributeName="opacity" values="0;0;0;0.5;0.5;0.5;0;0"
+          keyTimes="0;0.25;0.38;0.43;0.5;0.95;0.97;1"
           dur={`${dur}s`} repeatCount="indefinite" />
-      </polygon>
+      </line>
+      {/* inner vertical crosshair */}
+      <line x1="130" y1="97" x2="130" y2="123" stroke={FG} strokeWidth="0.75" opacity="0">
+        <animate attributeName="opacity" values="0;0;0;0.5;0.5;0.5;0;0"
+          keyTimes="0;0.25;0.40;0.45;0.5;0.95;0.97;1"
+          dur={`${dur}s`} repeatCount="indefinite" />
+      </line>
 
-      {/* COLOR SWATCHES — appear at phase 2+ */}
-      {(["#E84855","#3B82F6","#10B981","#F59E0B"] as const).map((color, i) => (
-        <circle key={i} cx={82 + i * 32} cy="155" r="0" fill={color}>
-          <animate attributeName="r" values={`0;0;11;11;11;0`}
-            keyTimes={`0;${ph[1].out};${ph[2].in + i * 0.02};${ph[2].s+0.5};${ph[3].out};1`}
-            dur={`${dur}s`} repeatCount="indefinite" />
-        </circle>
-      ))}
-
-      {/* TYPOGRAPHY LINES — appear at phase 3 */}
-      {[175, 184].map((y, i) => (
-        <rect key={y} x="75" y={y} width={[110, 75][i]} height="5" fill={MUTED} rx="2" opacity="0">
-          <animate attributeName="opacity" values={`0;0;0;0.45;0.45;0`}
-            keyTimes={`0;${ph[2].out};${ph[3].in + i * 0.03};${ph[3].in + 0.06};${ph[3].out};1`}
-            dur={`${dur}s`} repeatCount="indefinite" />
-          <animate attributeName="width" values={`0;0;0;${[110,75][i]};${[110,75][i]};0`}
-            keyTimes={`0;${ph[2].out};${ph[3].in + i * 0.03};${ph[3].in + 0.08};${ph[3].out};1`}
+      {/* SOME IDEAS: color swatches slide in */}
+      {(["#E84855", "#3B82F6", "#10B981", "#F59E0B"] as const).map((color, i) => (
+        <rect key={i} x={82 + i * 25} y="150" width="19" height="11" rx="2" fill={color} opacity="0">
+          <animate attributeName="opacity"
+            values={`0;0;0;${0.9 - i * 0.05};${0.9 - i * 0.05};0;0`}
+            keyTimes={`0;0.5;${0.53 + i * 0.02};${0.59 + i * 0.02};0.95;0.97;1`}
             dur={`${dur}s`} repeatCount="indefinite" />
         </rect>
       ))}
 
+      {/* FULL KIT: Aa type specimen */}
+      <text x="130" y="143" textAnchor="middle"
+        fontFamily="Geist Variable, sans-serif" fontSize="16" fontWeight="200"
+        fill={FG} opacity="0" letterSpacing="6">
+        Aa
+        <animate attributeName="opacity" values="0;0;0;0;0.75;0.75;0;0"
+          keyTimes="0;0.75;0.78;0.83;0.87;0.95;0.97;1"
+          dur={`${dur}s`} repeatCount="indefinite" />
+      </text>
+      {/* Small dot grid in top-right corner of canvas */}
+      {[0, 1, 2].flatMap(row => [0, 1, 2].map(col => (
+        <circle key={`${row}-${col}`}
+          cx={153 + col * 9} cy={69 + row * 9} r="1.5" fill={MUTED} opacity="0">
+          <animate attributeName="opacity"
+            values="0;0;0;0;0.4;0.4;0;0"
+            keyTimes={`0;0.75;0.79;${0.83 + (row * 3 + col) * 0.005};${0.87 + (row * 3 + col) * 0.005};0.95;0.97;1`}
+            dur={`${dur}s`} repeatCount="indefinite" />
+        </circle>
+      )))}
+
       {/* Level labels */}
-      {(["NONE","LOGO ONLY","SOME IDEAS","FULL KIT"] as const).map((label, i) => {
-        const { s, in: inn, out } = ph[i]
+      {(["NONE", "LOGO ONLY", "SOME IDEAS", "FULL KIT"] as const).map((label, i) => {
+        const s = i * 0.25
+        const e = i < 3 ? (i + 1) * 0.25 - 0.02 : 0.95
         return (
-          <text key={label} x="130" y="228" textAnchor="middle" fontFamily={MONO} fontSize="7" fill={MUTED} letterSpacing="3" opacity="0">
+          <text key={label} x="130" y="228" textAnchor="middle"
+            fontFamily={MONO} fontSize="7" fill={MUTED} letterSpacing="3" opacity="0">
             {label}
-            <animate attributeName="opacity" values={`0;0;1;1;0`} keyTimes={`0;${s};${inn};${out};1`} dur={`${dur}s`} repeatCount="indefinite" />
-            <animate attributeName="y" values={`234;234;228;228;224`} keyTimes={`0;${s};${inn};${out};1`} dur={`${dur}s`} repeatCount="indefinite" />
+            <animate attributeName="opacity" values="0;0;1;1;0"
+              keyTimes={`0;${s > 0 ? s : 0.001};${s + 0.04};${e};1`}
+              dur={`${dur}s`} repeatCount="indefinite" />
+            <animate attributeName="y" values="234;234;228;228;224"
+              keyTimes={`0;${s > 0 ? s : 0.001};${s + 0.04};${e};1`}
+              dur={`${dur}s`} repeatCount="indefinite" />
           </text>
         )
       })}
@@ -438,7 +457,7 @@ function G09() {
   )
 }
 
-// Q10: Competitors — scatter plot, one dot highlighted
+// Q10: Competitors — scatter plot with radar sweep, staggered dots, YOU label
 function G10() {
   const dots = [
     { cx: 80, cy: 90 }, { cx: 120, cy: 110 }, { cx: 155, cy: 80 },
@@ -447,19 +466,63 @@ function G10() {
   ]
   return (
     <Wrap>
-      {/* Axes */}
-      <line x1="50" y1="50" x2="50" y2="210" stroke={RULE} strokeWidth="1" />
-      <line x1="50" y1="210" x2="210" y2="210" stroke={RULE} strokeWidth="1" />
-      {/* All competitor dots */}
-      {dots.map((d, i) => (
-        <circle key={i} cx={d.cx} cy={d.cy} r="4" fill={MUTED} />
+      <defs>
+        <clipPath id="chartArea">
+          <rect x="50" y="50" width="162" height="162" />
+        </clipPath>
+      </defs>
+
+      {/* Subtle background grid */}
+      {[90, 130, 170].map(v => (
+        <line key={`h${v}`} x1="50" y1={v} x2="212" y2={v} stroke={RULE} strokeWidth="0.5" />
       ))}
-      {/* Highlighted dot — "you" — scanning with a circle */}
-      <circle cx="130" cy="130" r="4" fill={FG} />
-      <circle cx="130" cy="130" r="4" stroke={FG} strokeWidth="1" fill="none">
-        <animate attributeName="r" values="4;18;4" dur="2.5s" repeatCount="indefinite" />
-        <animate attributeName="opacity" values="1;0;1" dur="2.5s" repeatCount="indefinite" />
+      {[90, 130, 170].map(v => (
+        <line key={`v${v}`} x1={v} y1="50" x2={v} y2="212" stroke={RULE} strokeWidth="0.5" />
+      ))}
+
+      {/* Axes */}
+      <line x1="50" y1="50" x2="50" y2="212" stroke={MUTED} strokeWidth="1" />
+      <line x1="50" y1="212" x2="212" y2="212" stroke={MUTED} strokeWidth="1" />
+
+      {/* Axis labels */}
+      <text x="53" y="57" fontFamily={MONO} fontSize="6" fill={MUTED} letterSpacing="1">QUALITY</text>
+      <text x="166" y="209" fontFamily={MONO} fontSize="6" fill={MUTED} letterSpacing="1">PRICE</text>
+
+      {/* Radar sweep line */}
+      <line x1="130" y1="130" x2="214" y2="130" stroke={FG} strokeWidth="0.6"
+        opacity="0.28" clipPath="url(#chartArea)">
+        <animateTransform attributeName="transform" type="rotate"
+          values="0 130 130;360 130 130" dur="7s" repeatCount="indefinite" />
+      </line>
+
+      {/* Competitor dots — staggered fade-in */}
+      {dots.map((d, i) => (
+        <circle key={i} cx={d.cx} cy={d.cy} r="4" fill={MUTED} opacity="0">
+          <animate attributeName="opacity"
+            values="0;0;0.55;0.55"
+            keyTimes={`0;${0.05 + i * 0.06};${0.12 + i * 0.06};1`}
+            dur="5s" repeatCount="indefinite" />
+        </circle>
+      ))}
+
+      {/* YOU — highlighted dot */}
+      <circle cx="130" cy="130" r="5" fill={FG} />
+      {/* Pulse ring 1 */}
+      <circle cx="130" cy="130" r="5" stroke={FG} strokeWidth="1" fill="none">
+        <animate attributeName="r" values="5;22;5" dur="2.5s" repeatCount="indefinite" />
+        <animate attributeName="opacity" values="0.8;0;0.8" dur="2.5s" repeatCount="indefinite" />
       </circle>
+      {/* Pulse ring 2 — offset */}
+      <circle cx="130" cy="130" r="5" stroke={FG} strokeWidth="0.5" fill="none">
+        <animate attributeName="r" values="5;30;5" dur="2.5s" begin="0.8s" repeatCount="indefinite" />
+        <animate attributeName="opacity" values="0.4;0;0.4" dur="2.5s" begin="0.8s" repeatCount="indefinite" />
+      </circle>
+      {/* YOU label */}
+      <text x="138" y="125" fontFamily={MONO} fontSize="7" fill={FG} letterSpacing="1.5" opacity="0">
+        YOU
+        <animate attributeName="opacity" values="0;0;1;1"
+          keyTimes="0;0.4;0.55;1" dur="5s" repeatCount="indefinite" />
+      </text>
     </Wrap>
   )
 }
@@ -560,20 +623,37 @@ function G12() {
   )
 }
 
-// Q13: Budget — circular arc dial filling up
+// Q13: Budget — arc gauge cycles through four tiers
 function G13() {
-  // circumference of r=80 ≈ 502.6
   const r = 80
   const circ = 2 * Math.PI * r
+  const track = circ * 0.75
+  const totalDur = 7.2 // 1.8s × 4 tiers
+
+  const arcVals = [
+    `0 ${circ}`,
+    `${track * 0.25} ${circ}`,
+    `${track * 0.25} ${circ}`,
+    `${track * 0.5} ${circ}`,
+    `${track * 0.5} ${circ}`,
+    `${track * 0.75} ${circ}`,
+    `${track * 0.75} ${circ}`,
+    `${track * 1.0} ${circ}`,
+    `${track * 1.0} ${circ}`,
+    `0 ${circ}`,
+  ].join(";")
+
+  const tiers = ["$2K", "$8K", "$20K", "$50K+"]
+
   return (
     <Wrap>
       {/* Background arc track */}
       <circle cx="130" cy="140" r={r} stroke={RULE} strokeWidth="8" strokeLinecap="round"
-        strokeDasharray={`${circ * 0.75} ${circ}`}
+        strokeDasharray={`${track} ${circ}`}
         strokeDashoffset={circ * 0.125}
         transform="rotate(-225 130 140)"
       />
-      {/* Animated fill arc */}
+      {/* Animated fill arc — steps through tiers */}
       <circle cx="130" cy="140" r={r} stroke={FG} strokeWidth="8" strokeLinecap="round"
         strokeDasharray={`0 ${circ}`}
         strokeDashoffset={circ * 0.125}
@@ -581,18 +661,31 @@ function G13() {
       >
         <animate
           attributeName="strokeDasharray"
-          values={`0 ${circ};${circ * 0.75} ${circ};${circ * 0.75} ${circ};0 ${circ}`}
-          keyTimes="0;0.55;0.75;1"
-          dur="4s"
+          values={arcVals}
+          keyTimes="0;0.08;0.25;0.33;0.5;0.58;0.75;0.83;0.95;1"
+          dur={`${totalDur}s`}
           repeatCount="indefinite"
+          calcMode="spline"
+          keySplines="0.4 0 0.2 1;1 0 1 0;0.4 0 0.2 1;1 0 1 0;0.4 0 0.2 1;1 0 1 0;0.4 0 0.2 1;1 0 1 0;0.4 0 0.2 1"
         />
       </circle>
-      {/* Dollar label */}
-      <text x="130" y="132" textAnchor="middle" fontFamily={MONO} fontSize="20" fontWeight="200" fill={FG} letterSpacing="-1">
-        $5K
-        <animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.1;0.35;0.75;1" dur="4s" repeatCount="indefinite" />
-      </text>
-      <text x="130" y="148" textAnchor="middle" fontFamily={MONO} fontSize="7" fill={MUTED} letterSpacing="2">
+      {/* Tier amount labels */}
+      {tiers.map((tier, i) => {
+        const s = i * 0.25
+        const e = s + 0.22
+        return (
+          <text key={tier} x="130" y="133" textAnchor="middle"
+            fontFamily={MONO} fontSize="22" fontWeight="200" fill={FG}
+            letterSpacing="-1" opacity="0">
+            {tier}
+            <animate attributeName="opacity"
+              values="0;0;1;1;0"
+              keyTimes={`0;${s > 0 ? s : 0.001};${s + 0.08};${e};1`}
+              dur={`${totalDur}s`} repeatCount="indefinite" />
+          </text>
+        )
+      })}
+      <text x="130" y="149" textAnchor="middle" fontFamily={MONO} fontSize="7" fill={MUTED} letterSpacing="2">
         BUDGET
       </text>
     </Wrap>
