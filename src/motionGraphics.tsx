@@ -93,65 +93,81 @@ function G03() {
   )
 }
 
-// Q4: Vibe — a shape that morphs through different aesthetic "feels"
+// Q4: Vibe — shape morphs + per-vibe secondary elements + dynamic label entry
 function G04() {
-  // We animate the shape's appearance via stroke-dasharray cycles
-  // representing editorial→brutalist→playful→luxury→organic→technical
   const labels = ["EDITORIAL", "BRUTALIST", "PLAYFUL", "LUXURY", "ORGANIC", "TECHNICAL"]
   const n = labels.length
-  const dur = 7.2 // total cycle = 1.2s per vibe
+  const dur = 8.4 // 1.4s per vibe
 
   return (
     <Wrap>
-      {/* Large morphing rect */}
-      <rect x="55" y="65" width="150" height="130" stroke={FG} strokeWidth="1.5" rx="0">
-        <animate
-          attributeName="rx"
-          values="0;0;65;0;20;0"
-          keyTimes="0;0.18;0.35;0.52;0.68;1"
-          dur={`${dur}s`}
-          repeatCount="indefinite"
-        />
-        <animate
-          attributeName="strokeDasharray"
-          values="none;4 4;none;none;none;3 8"
-          keyTimes="0;0.18;0.35;0.52;0.68;1"
-          dur={`${dur}s`}
-          repeatCount="indefinite"
-        />
-        <animate
-          attributeName="strokeWidth"
-          values="1.5;3;1.5;0.5;1.5;1"
-          keyTimes="0;0.18;0.35;0.52;0.68;1"
-          dur={`${dur}s`}
-          repeatCount="indefinite"
-        />
+      {/* Main morphing rect */}
+      <rect x="60" y="68" width="140" height="124" stroke={FG} strokeWidth="1.5" rx="0" fill="none">
+        <animate attributeName="rx" values="0;0;0;65;20;0;0" keyTimes="0;0.17;0.33;0.5;0.67;0.83;1" dur={`${dur}s`} repeatCount="indefinite" />
+        <animate attributeName="strokeWidth" values="1.5;4;1.5;0.5;1.5;1;1.5" keyTimes="0;0.17;0.33;0.5;0.67;0.83;1" dur={`${dur}s`} repeatCount="indefinite" />
+        <animate attributeName="strokeDasharray" values="none;none;none;none;none;2 6;none" keyTimes="0;0.17;0.33;0.5;0.67;0.83;1" dur={`${dur}s`} repeatCount="indefinite" />
+        <animate attributeName="opacity" values="1;1;0;0;1;1;1" keyTimes="0;0.3;0.33;0.48;0.52;0.67;1" dur={`${dur}s`} repeatCount="indefinite" />
       </rect>
-      {/* Vibe label cycling */}
+
+      {/* EDITORIAL — two bold horizontal dividers inside the frame */}
+      <line x1="60" y1="108" x2="200" y2="108" stroke={FG} strokeWidth="1" opacity="0">
+        <animate attributeName="opacity" values="0.7;0;0;0;0;0;0.7" keyTimes="0;0.15;0.17;0.5;0.67;0.85;1" dur={`${dur}s`} repeatCount="indefinite" />
+      </line>
+      <line x1="60" y1="148" x2="200" y2="148" stroke={FG} strokeWidth="1" opacity="0">
+        <animate attributeName="opacity" values="0.7;0;0;0;0;0;0.7" keyTimes="0;0.15;0.17;0.5;0.67;0.85;1" dur={`${dur}s`} repeatCount="indefinite" />
+      </line>
+
+      {/* BRUTALIST — heavy offset shadow rect */}
+      <rect x="67" y="75" width="140" height="124" stroke={FG} strokeWidth="5" rx="0" fill="none" opacity="0">
+        <animate attributeName="opacity" values="0;0.5;0;0;0;0;0" keyTimes="0;0.17;0.32;0.5;0.67;0.83;1" dur={`${dur}s`} repeatCount="indefinite" />
+      </rect>
+
+      {/* PLAYFUL — scattered bouncing circles */}
+      {([{cx:95,cy:105,r:16},{cx:165,cy:93,r:11},{cx:132,cy:148,r:20},{cx:78,cy:158,r:9},{cx:178,cy:158,r:13}] as const).map((c, i) => (
+        <circle key={i} cx={c.cx} cy={c.cy} r={0} stroke={FG} strokeWidth="1.5" fill="none" opacity="0">
+          <animate attributeName="opacity" values={`0;0;${i%2===0?1:0.7};0;0;0;0`} keyTimes="0;0.31;0.38;0.5;0.67;0.83;1" dur={`${dur}s`} repeatCount="indefinite" begin={`${i * 0.06}s`} />
+          <animate attributeName="r" values={`0;0;${c.r};${c.r};0;0;0`} keyTimes="0;0.31;0.38;0.48;0.5;0.67;1" dur={`${dur}s`} repeatCount="indefinite" begin={`${i * 0.06}s`} />
+        </circle>
+      ))}
+
+      {/* LUXURY — fine parallel horizontal lines */}
+      {[82,95,108,121,134,147,160,173].map((y, i) => (
+        <line key={y} x1="60" y1={y} x2="200" y2={y} stroke={FG} strokeWidth="0.4" opacity="0">
+          <animate attributeName="opacity" values={`0;0;0;0;0.7;0;0`} keyTimes="0;0.17;0.33;0.5;0.58;0.67;1" dur={`${dur}s`} repeatCount="indefinite" begin={`${i * 0.025}s`} />
+        </line>
+      ))}
+
+      {/* ORGANIC — two soft overlapping circles */}
+      <circle cx="108" cy="128" r="0" stroke={FG} strokeWidth="1" fill="none" opacity="0">
+        <animate attributeName="r" values="0;0;0;0;0;38;38;0" keyTimes="0;0.17;0.33;0.5;0.65;0.72;0.83;1" dur={`${dur}s`} repeatCount="indefinite" />
+        <animate attributeName="opacity" values="0;0;0;0;0;1;1;0" keyTimes="0;0.17;0.33;0.5;0.65;0.72;0.83;1" dur={`${dur}s`} repeatCount="indefinite" />
+      </circle>
+      <circle cx="152" cy="128" r="0" stroke={FG} strokeWidth="1" fill="none" opacity="0">
+        <animate attributeName="r" values="0;0;0;0;0;38;38;0" keyTimes="0;0.17;0.33;0.5;0.67;0.74;0.83;1" dur={`${dur}s`} repeatCount="indefinite" begin="0.15s" />
+        <animate attributeName="opacity" values="0;0;0;0;0;1;1;0" keyTimes="0;0.17;0.33;0.5;0.67;0.74;0.83;1" dur={`${dur}s`} repeatCount="indefinite" begin="0.15s" />
+      </circle>
+
+      {/* TECHNICAL — crosshair marks */}
+      <line x1="130" y1="68" x2="130" y2="192" stroke={FG} strokeWidth="0.5" strokeDasharray="2 4" opacity="0">
+        <animate attributeName="opacity" values="0;0;0;0;0;0;0.5;0" keyTimes="0;0.17;0.33;0.5;0.67;0.83;0.9;1" dur={`${dur}s`} repeatCount="indefinite" />
+      </line>
+      <line x1="60" y1="130" x2="200" y2="130" stroke={FG} strokeWidth="0.5" strokeDasharray="2 4" opacity="0">
+        <animate attributeName="opacity" values="0;0;0;0;0;0;0.5;0" keyTimes="0;0.17;0.33;0.5;0.67;0.83;0.9;1" dur={`${dur}s`} repeatCount="indefinite" />
+      </line>
+      <circle cx="130" cy="130" r="8" stroke={FG} strokeWidth="0.5" fill="none" opacity="0">
+        <animate attributeName="opacity" values="0;0;0;0;0;0;0.5;0" keyTimes="0;0.17;0.33;0.5;0.67;0.83;0.9;1" dur={`${dur}s`} repeatCount="indefinite" />
+      </circle>
+
+      {/* Labels — slide up on entry */}
       {labels.map((label, i) => {
-        const start = i / n
-        const mid = (i + 0.4) / n
-        const end = (i + 0.7) / n
+        const s = i / n
+        const e = (i + 0.82) / n
+        const mid = (s + e) / 2
         return (
-          <text
-            key={label}
-            x="130"
-            y="222"
-            textAnchor="middle"
-            fontFamily={MONO}
-            fontSize="8"
-            fill={MUTED}
-            letterSpacing="3"
-            opacity="0"
-          >
+          <text key={label} x="130" y="222" textAnchor="middle" fontFamily={MONO} fontSize="8" fill={MUTED} letterSpacing="3" opacity="0">
             {label}
-            <animate
-              attributeName="opacity"
-              values={`0;0;1;1;0`}
-              keyTimes={`0;${start};${(start + mid) / 2};${mid};${end}`}
-              dur={`${dur}s`}
-              repeatCount="indefinite"
-            />
+            <animate attributeName="opacity" values={`0;0;1;1;0`} keyTimes={`0;${s};${s+0.04};${mid};${e}`} dur={`${dur}s`} repeatCount="indefinite" />
+            <animate attributeName="y" values={`228;228;222;222;218`} keyTimes={`0;${s};${s+0.04};${mid};${e}`} dur={`${dur}s`} repeatCount="indefinite" />
           </text>
         )
       })}
@@ -199,38 +215,49 @@ function G05() {
   )
 }
 
-// Q6: Logo upload — geometric mark inside a frame, slowly rotating
+// Q6: Logo upload — minimal framing marks, mark reveals then a baseline rule extends
 function G06() {
   return (
     <Wrap>
-      {/* Frame */}
-      <rect x="65" y="65" width="130" height="130" stroke={RULE} strokeWidth="1" />
-      {/* Rotating geometric mark */}
-      <g>
-        <animateTransform
-          attributeName="transform"
-          type="rotate"
-          values="0 130 130;360 130 130"
-          dur="20s"
-          repeatCount="indefinite"
-        />
-        <polygon points="130,90 158,148 102,148" stroke={FG} strokeWidth="1.5" />
-        <circle cx="130" cy="130" r="22" stroke={FG} strokeWidth="1" />
-      </g>
-      {/* Corner accents */}
-      <line x1="65" y1="75" x2="65" y2="65" stroke={FG} strokeWidth="1" />
-      <line x1="65" y1="65" x2="75" y2="65" stroke={FG} strokeWidth="1" />
-      <line x1="185" y1="65" x2="195" y2="65" stroke={FG} strokeWidth="1" />
-      <line x1="195" y1="65" x2="195" y2="75" stroke={FG} strokeWidth="1" />
-      <line x1="195" y1="185" x2="195" y2="195" stroke={FG} strokeWidth="1" />
-      <line x1="185" y1="195" x2="195" y2="195" stroke={FG} strokeWidth="1" />
-      <line x1="75" y1="195" x2="65" y2="195" stroke={FG} strokeWidth="1" />
-      <line x1="65" y1="195" x2="65" y2="185" stroke={FG} strokeWidth="1" />
+      {/* Corner bracket marks */}
+      <line x1="65" y1="82" x2="65" y2="65" stroke={FG} strokeWidth="1.5" />
+      <line x1="65" y1="65" x2="82" y2="65" stroke={FG} strokeWidth="1.5" />
+      <line x1="178" y1="65" x2="195" y2="65" stroke={FG} strokeWidth="1.5" />
+      <line x1="195" y1="65" x2="195" y2="82" stroke={FG} strokeWidth="1.5" />
+      <line x1="195" y1="178" x2="195" y2="195" stroke={FG} strokeWidth="1.5" />
+      <line x1="178" y1="195" x2="195" y2="195" stroke={FG} strokeWidth="1.5" />
+      <line x1="82" y1="195" x2="65" y2="195" stroke={FG} strokeWidth="1.5" />
+      <line x1="65" y1="195" x2="65" y2="178" stroke={FG} strokeWidth="1.5" />
+
+      {/* Subtle center crosshair */}
+      <line x1="122" y1="130" x2="138" y2="130" stroke={MUTED} strokeWidth="0.5" opacity="0.35" />
+      <line x1="130" y1="122" x2="130" y2="138" stroke={MUTED} strokeWidth="0.5" opacity="0.35" />
+
+      {/* Minimal mark: circle expands in */}
+      <circle cx="130" cy="112" r="4" stroke={FG} strokeWidth="1.5" fill="none" opacity="0">
+        <animate attributeName="r" values="4;4;22;22;22;4" keyTimes="0;0.1;0.28;0.6;0.85;0.96" dur="5s" repeatCount="indefinite" />
+        <animate attributeName="opacity" values="0;0;1;1;1;0" keyTimes="0;0.1;0.28;0.6;0.85;0.96" dur="5s" repeatCount="indefinite" />
+      </circle>
+
+      {/* Baseline rule slides out from center */}
+      <line x1="130" y1="144" x2="130" y2="144" stroke={FG} strokeWidth="1" opacity="0">
+        <animate attributeName="x1" values="130;130;104;104;104;130" keyTimes="0;0.32;0.46;0.6;0.85;0.96" dur="5s" repeatCount="indefinite" />
+        <animate attributeName="x2" values="130;130;156;156;156;130" keyTimes="0;0.32;0.46;0.6;0.85;0.96" dur="5s" repeatCount="indefinite" />
+        <animate attributeName="opacity" values="0;0;1;1;1;0" keyTimes="0;0.32;0.46;0.6;0.85;0.96" dur="5s" repeatCount="indefinite" />
+      </line>
+
+      {/* Wordmark placeholder lines */}
+      <line x1="112" y1="154" x2="148" y2="154" stroke={MUTED} strokeWidth="0.75" opacity="0">
+        <animate attributeName="opacity" values="0;0;0;0.45;0.45;0" keyTimes="0;0.38;0.52;0.62;0.85;0.96" dur="5s" repeatCount="indefinite" />
+      </line>
+      <line x1="120" y1="161" x2="140" y2="161" stroke={MUTED} strokeWidth="0.75" opacity="0">
+        <animate attributeName="opacity" values="0;0;0;0.28;0.28;0" keyTimes="0;0.38;0.56;0.64;0.85;0.96" dur="5s" repeatCount="indefinite" />
+      </line>
     </Wrap>
   )
 }
 
-// Q7: Colors — four circles appearing and glowing
+// Q7: Colors — four circles in distinct vivid colors, independently pulsing with glow rings
 function G07() {
   const positions = [
     { cx: 96, cy: 96 },
@@ -238,27 +265,25 @@ function G07() {
     { cx: 96, cy: 164 },
     { cx: 164, cy: 164 },
   ]
-  const fills = [FG, MUTED, "#3a3a3a", FG]
+  const fills = ["#E84855", "#3B82F6", "#10B981", "#F59E0B"]
+  const delays = ["0s", "0.7s", "1.4s", "2.1s"]
+  const durations = ["3.2s", "3.8s", "2.9s", "4.1s"]
+
   return (
     <Wrap>
       {positions.map((pos, i) => (
         <g key={i}>
-          <circle cx={pos.cx} cy={pos.cy} r="26" stroke={RULE} strokeWidth="1" />
-          <circle cx={pos.cx} cy={pos.cy} r="22" fill={fills[i]} opacity="0">
-            <animate
-              attributeName="opacity"
-              values="0;0;0.9;0.9;0"
-              keyTimes={`0;${i * 0.18};${i * 0.18 + 0.12};0.85;1`}
-              dur="4s"
-              repeatCount="indefinite"
-            />
-            <animate
-              attributeName="r"
-              values="10;10;22;22;10"
-              keyTimes={`0;${i * 0.18};${i * 0.18 + 0.12};0.85;1`}
-              dur="4s"
-              repeatCount="indefinite"
-            />
+          {/* Static outer ring */}
+          <circle cx={pos.cx} cy={pos.cy} r="28" stroke={RULE} strokeWidth="1" />
+          {/* Expanding glow ring */}
+          <circle cx={pos.cx} cy={pos.cy} r="22" fill="none" stroke={fills[i]} strokeWidth="1" opacity="0">
+            <animate attributeName="opacity" values="0;0.5;0" keyTimes="0;0.25;0.7" dur={durations[i]} begin={delays[i]} repeatCount="indefinite" />
+            <animate attributeName="r" values="22;34;42" keyTimes="0;0.25;0.7" dur={durations[i]} begin={delays[i]} repeatCount="indefinite" />
+          </circle>
+          {/* Filled circle */}
+          <circle cx={pos.cx} cy={pos.cy} r="8" fill={fills[i]} opacity="0">
+            <animate attributeName="opacity" values="0;0.9;0.9;0" keyTimes="0;0.18;0.7;1" dur={durations[i]} begin={delays[i]} repeatCount="indefinite" />
+            <animate attributeName="r" values="8;22;22;8" keyTimes="0;0.18;0.7;1" dur={durations[i]} begin={delays[i]} repeatCount="indefinite" />
           </circle>
         </g>
       ))}
@@ -266,45 +291,70 @@ function G07() {
   )
 }
 
-// Q8: Brand assets — stacked file rectangles that float up
+// Q8: Brand assets — stacked files with content previews floating upward
 function G08() {
   const files = [
-    { y: 160, delay: "0s" },
-    { y: 148, delay: "0.15s" },
-    { y: 136, delay: "0.3s" },
+    { x: 60, y: 162, delay: "0s" },
+    { x: 68, y: 148, delay: "0.22s" },
+    { x: 76, y: 134, delay: "0.44s" },
   ]
+  const swatchColors = ["#E84855", "#3B82F6", "#10B981", "#F59E0B"]
+
   return (
     <Wrap>
-      {files.map((f, i) => (
-        <g key={i}>
-          <rect x={60 + i * 6} y={f.y} width="130" height="90" stroke={i === 2 ? FG : MUTED} strokeWidth="1" fill="#000" opacity={i === 2 ? 1 : 0.8}>
-            <animate
-              attributeName="y"
-              values={`${f.y};${f.y - 18};${f.y}`}
-              dur="3.5s"
-              begin={f.delay}
-              repeatCount="indefinite"
-            />
-          </rect>
-          {/* File content lines */}
-          <line x1={68 + i * 6} y1={f.y + 18} x2={170 + i * 6} y2={f.y + 18} stroke={RULE} strokeWidth="1">
-            <animate
-              attributeName="y1"
-              values={`${f.y + 18};${f.y};${f.y + 18}`}
-              dur="3.5s"
-              begin={f.delay}
-              repeatCount="indefinite"
-            />
-            <animate
-              attributeName="y2"
-              values={`${f.y + 18};${f.y};${f.y + 18}`}
-              dur="3.5s"
-              begin={f.delay}
-              repeatCount="indefinite"
-            />
-          </line>
-        </g>
-      ))}
+      {files.map((f, i) => {
+        const floatY = `${f.y};${f.y - 22};${f.y}`
+        const spline = "0.45 0 0.55 1;0.45 0 0.55 1"
+        const animProps = { dur: "4.2s", begin: f.delay, repeatCount: "indefinite" as const, calcMode: "spline" as const, keySplines: spline }
+        return (
+          <g key={i}>
+            {/* Card body */}
+            <rect x={f.x} y={f.y} width="126" height="82" stroke={i === 2 ? FG : MUTED} strokeWidth="1" fill="#000">
+              <animate attributeName="y" values={floatY} {...animProps} />
+            </rect>
+            {/* Header strip */}
+            <rect x={f.x} y={f.y} width="126" height="14" fill={i === 2 ? "#141414" : "#0a0a0a"}>
+              <animate attributeName="y" values={floatY} {...animProps} />
+            </rect>
+            {/* Window dots */}
+            {[7, 16, 25].map((dx, j) => (
+              <circle key={j} cx={f.x + dx} cy={f.y + 7} r="2.5" fill={j === 0 ? "#3a3a3a" : j === 1 ? "#2a2a2a" : "#222"}>
+                <animate attributeName="cy" values={`${f.y + 7};${f.y - 15};${f.y + 7}`} {...animProps} />
+              </circle>
+            ))}
+            {/* Content: top file shows color swatches */}
+            {i === 2 && swatchColors.map((color, j) => (
+              <rect key={j} x={f.x + 8 + j * 27} y={f.y + 22} width="21" height="52" fill={color} opacity="0.88">
+                <animate attributeName="y" values={`${f.y + 22};${f.y};${f.y + 22}`} {...animProps} />
+              </rect>
+            ))}
+            {/* Content: middle file shows type preview lines */}
+            {i === 1 && [28, 43, 56, 66].map((yOff, j) => (
+              <rect key={j} x={f.x + 8} y={f.y + yOff} width={[100, 80, 90, 65][j]} height="7" fill={MUTED} opacity="0.35" rx="2">
+                <animate attributeName="y" values={`${f.y + yOff};${f.y + yOff - 22};${f.y + yOff}`} {...animProps} />
+              </rect>
+            ))}
+            {/* Content: bottom file shows logo sketch lines */}
+            {i === 0 && (
+              <>
+                <line x1={f.x + 10} y1={f.y + 32} x2={f.x + 116} y2={f.y + 32} stroke={RULE} strokeWidth="1">
+                  <animate attributeName="y1" values={`${f.y + 32};${f.y + 10};${f.y + 32}`} {...animProps} />
+                  <animate attributeName="y2" values={`${f.y + 32};${f.y + 10};${f.y + 32}`} {...animProps} />
+                </line>
+                <line x1={f.x + 10} y1={f.y + 52} x2={f.x + 80} y2={f.y + 52} stroke={RULE} strokeWidth="1">
+                  <animate attributeName="y1" values={`${f.y + 52};${f.y + 30};${f.y + 52}`} {...animProps} />
+                  <animate attributeName="y2" values={`${f.y + 52};${f.y + 30};${f.y + 52}`} {...animProps} />
+                </line>
+              </>
+            )}
+          </g>
+        )
+      })}
+      {/* Upload particle rising from top file */}
+      <circle cx="139" cy="134" r="3" fill={FG} opacity="0">
+        <animate attributeName="cy" values="134;80;80" keyTimes="0;0.55;1" dur="3.2s" begin="0.8s" repeatCount="indefinite" />
+        <animate attributeName="opacity" values="0;0;0.8;0.8;0" keyTimes="0;0.08;0.18;0.5;0.65" dur="3.2s" begin="0.8s" repeatCount="indefinite" />
+      </circle>
     </Wrap>
   )
 }
@@ -422,51 +472,43 @@ function G11() {
   )
 }
 
-// Q12: Features — grid of toggles switching on
+// Q12: Features — checklist that checks off sequentially
 function G12() {
-  const toggles = [
-    { x: 60, y: 72 }, { x: 112, y: 72 }, { x: 164, y: 72 },
-    { x: 60, y: 118 }, { x: 112, y: 118 }, { x: 164, y: 118 },
-    { x: 60, y: 164 }, { x: 112, y: 164 }, { x: 164, y: 164 },
-  ]
+  const items = ["E-commerce", "Blog / News", "Booking", "Analytics", "Search"]
+  const totalDur = 5.5
+  const stepDur = 0.76
+
   return (
     <Wrap>
-      {toggles.map((t, i) => {
-        const delay = (i * 0.4) % 3.6
+      {items.map((item, i) => {
+        const s = (i * stepDur) / totalDur
+        const mid = s + 0.06
+        const hold = 0.84
+        const kts = `0;${s};${mid};${hold};1`
+        const checkKts = `0;${mid};${mid + 0.04};${hold};1`
+        const y = 74 + i * 30
         return (
           <g key={i}>
-            {/* Track */}
-            <rect x={t.x} y={t.y} width="36" height="18" rx="9" stroke={MUTED} strokeWidth="1" fill="none" />
-            {/* Fill when on */}
-            <rect x={t.x} y={t.y} width="36" height="18" rx="9" fill={FG} opacity="0">
-              <animate
-                attributeName="opacity"
-                values="0;0;0;0.9;0.9;0.9;0"
-                keyTimes="0;0.1;0.3;0.35;0.7;0.9;1"
-                dur="3.6s"
-                begin={`${delay}s`}
-                repeatCount="indefinite"
-              />
+            {/* Checkbox outline */}
+            <rect x="50" y={y} width="17" height="17" rx="3" stroke={MUTED} strokeWidth="1" fill="none" />
+            {/* Checkbox fill */}
+            <rect x="50" y={y} width="17" height="17" rx="3" fill={FG} opacity="0">
+              <animate attributeName="opacity" values={`0;0;1;1;0`} keyTimes={kts} dur={`${totalDur}s`} repeatCount="indefinite" />
             </rect>
-            {/* Knob */}
-            <circle cx={t.x + 9} cy={t.y + 9} r="6" fill={MUTED}>
-              <animate
-                attributeName="cx"
-                values={`${t.x + 9};${t.x + 9};${t.x + 27};${t.x + 27};${t.x + 9}`}
-                keyTimes="0;0.3;0.4;0.9;1"
-                dur="3.6s"
-                begin={`${delay}s`}
-                repeatCount="indefinite"
-              />
-              <animate
-                attributeName="fill"
-                values={`${MUTED};${MUTED};#000;#000;${MUTED}`}
-                keyTimes="0;0.3;0.4;0.9;1"
-                dur="3.6s"
-                begin={`${delay}s`}
-                repeatCount="indefinite"
-              />
-            </circle>
+            {/* Checkmark */}
+            <polyline
+              points={`${53},${y + 8.5} ${57},${y + 13} ${65},${y + 4}`}
+              stroke="#000" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"
+              opacity="0"
+            >
+              <animate attributeName="opacity" values={`0;0;1;1;0`} keyTimes={checkKts} dur={`${totalDur}s`} repeatCount="indefinite" />
+            </polyline>
+            {/* Label slides in */}
+            <text x="90" y={y + 12} fontFamily={MONO} fontSize="9" fill={FG} letterSpacing="1" opacity="0">
+              {item}
+              <animate attributeName="opacity" values={`0;0;0.85;0.85;0`} keyTimes={kts} dur={`${totalDur}s`} repeatCount="indefinite" />
+              <animate attributeName="x" values={`96;96;78;78;78`} keyTimes={kts} dur={`${totalDur}s`} repeatCount="indefinite" />
+            </text>
           </g>
         )
       })}
