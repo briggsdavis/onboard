@@ -175,84 +175,126 @@ function G04() {
   )
 }
 
-// Q5: Branding — a progress bar filling through 4 levels
+// Q5: Branding — brand kit building up layer by layer
 function G05() {
+  const dur = 7.2 // 1.8s per level: none → logo → some → full
+
+  // Shared timing for each phase
+  const p = (phase: number) => ({
+    s: phase / 4,
+    in: phase / 4 + 0.04,
+    out: (phase + 0.85) / 4,
+    e: (phase + 1) / 4,
+  })
+
+  const ph = [p(0), p(1), p(2), p(3)]
+
   return (
     <Wrap>
-      {/* Track */}
-      <rect x="40" y="118" width="180" height="2" fill={RULE} />
-      {/* Fill bar */}
-      <rect x="40" y="118" width="0" height="2" fill={FG}>
-        <animate
-          attributeName="width"
-          values="0;0;45;45;90;90;135;135;180;180;0"
-          keyTimes="0;0.05;0.15;0.3;0.4;0.55;0.65;0.8;0.9;0.97;1"
-          dur="5s"
-          repeatCount="indefinite"
-        />
-      </rect>
-      {/* Level ticks */}
-      {[0, 45, 90, 135, 180].map((x, i) => (
-        <rect key={i} x={40 + x} y="114" width="1" height="10" fill={RULE} />
-      ))}
-      {/* Level labels */}
-      {["None", "Logo", "Some", "Full"].map((label, i) => (
-        <text key={label} x={40 + i * 45 + 22} y="108" textAnchor="middle" fontFamily={MONO} fontSize="7" fill={MUTED} letterSpacing="1">
-          {label}
-        </text>
-      ))}
-      {/* Dot indicator */}
-      <circle cx="40" cy="119" r="4" fill={FG}>
-        <animate
-          attributeName="cx"
-          values="40;40;85;85;130;130;175;175;220;220;40"
-          keyTimes="0;0.05;0.15;0.3;0.4;0.55;0.65;0.8;0.9;0.97;1"
-          dur="5s"
-          repeatCount="indefinite"
-        />
+      {/* Canvas frame */}
+      <rect x="60" y="60" width="140" height="140" stroke={RULE} strokeWidth="1" />
+
+      {/* LOGO MARK — appears at phase 1+ */}
+      {/* Outer circle of mark */}
+      <circle cx="130" cy="108" r="0" stroke={FG} strokeWidth="1.5" fill="none">
+        <animate attributeName="r" values={`0;0;22;22;22;22;22;22;0`}
+          keyTimes={`0;${ph[0].out};${ph[1].in};${ph[1].s+0.5};${ph[2].in};${ph[2].s+0.5};${ph[3].in};${ph[3].out};1`}
+          dur={`${dur}s`} repeatCount="indefinite" />
+        <animate attributeName="opacity" values={`0;0;1;1;1;1;1;1;0`}
+          keyTimes={`0;${ph[0].out};${ph[1].in};${ph[1].s+0.5};${ph[2].in};${ph[2].s+0.5};${ph[3].in};${ph[3].out};1`}
+          dur={`${dur}s`} repeatCount="indefinite" />
       </circle>
+      {/* Inner diamond of mark */}
+      <polygon points="130,90 146,108 130,126 114,108" stroke={FG} strokeWidth="1" fill="none" opacity="0">
+        <animate attributeName="opacity" values={`0;0;0.7;0.7;0.7;0.7;0.7;0.7;0`}
+          keyTimes={`0;${ph[0].out};${ph[1].in};${ph[1].s+0.5};${ph[2].in};${ph[2].s+0.5};${ph[3].in};${ph[3].out};1`}
+          dur={`${dur}s`} repeatCount="indefinite" />
+      </polygon>
+
+      {/* COLOR SWATCHES — appear at phase 2+ */}
+      {(["#E84855","#3B82F6","#10B981","#F59E0B"] as const).map((color, i) => (
+        <circle key={i} cx={82 + i * 32} cy="155" r="0" fill={color}>
+          <animate attributeName="r" values={`0;0;11;11;11;0`}
+            keyTimes={`0;${ph[1].out};${ph[2].in + i * 0.02};${ph[2].s+0.5};${ph[3].out};1`}
+            dur={`${dur}s`} repeatCount="indefinite" />
+        </circle>
+      ))}
+
+      {/* TYPOGRAPHY LINES — appear at phase 3 */}
+      {[175, 184].map((y, i) => (
+        <rect key={y} x="75" y={y} width={[110, 75][i]} height="5" fill={MUTED} rx="2" opacity="0">
+          <animate attributeName="opacity" values={`0;0;0;0.45;0.45;0`}
+            keyTimes={`0;${ph[2].out};${ph[3].in + i * 0.03};${ph[3].in + 0.06};${ph[3].out};1`}
+            dur={`${dur}s`} repeatCount="indefinite" />
+          <animate attributeName="width" values={`0;0;0;${[110,75][i]};${[110,75][i]};0`}
+            keyTimes={`0;${ph[2].out};${ph[3].in + i * 0.03};${ph[3].in + 0.08};${ph[3].out};1`}
+            dur={`${dur}s`} repeatCount="indefinite" />
+        </rect>
+      ))}
+
+      {/* Level labels */}
+      {(["NONE","LOGO ONLY","SOME IDEAS","FULL KIT"] as const).map((label, i) => {
+        const { s, in: inn, out } = ph[i]
+        return (
+          <text key={label} x="130" y="228" textAnchor="middle" fontFamily={MONO} fontSize="7" fill={MUTED} letterSpacing="3" opacity="0">
+            {label}
+            <animate attributeName="opacity" values={`0;0;1;1;0`} keyTimes={`0;${s};${inn};${out};1`} dur={`${dur}s`} repeatCount="indefinite" />
+            <animate attributeName="y" values={`234;234;228;228;224`} keyTimes={`0;${s};${inn};${out};1`} dur={`${dur}s`} repeatCount="indefinite" />
+          </text>
+        )
+      })}
     </Wrap>
   )
 }
 
-// Q6: Logo upload — minimal framing marks, mark reveals then a baseline rule extends
+// Q6: Logo upload — circular icon placeholder with orbital ring and pulsing inner mark
 function G06() {
   return (
     <Wrap>
-      {/* Corner bracket marks */}
-      <line x1="65" y1="82" x2="65" y2="65" stroke={FG} strokeWidth="1.5" />
-      <line x1="65" y1="65" x2="82" y2="65" stroke={FG} strokeWidth="1.5" />
-      <line x1="178" y1="65" x2="195" y2="65" stroke={FG} strokeWidth="1.5" />
-      <line x1="195" y1="65" x2="195" y2="82" stroke={FG} strokeWidth="1.5" />
-      <line x1="195" y1="178" x2="195" y2="195" stroke={FG} strokeWidth="1.5" />
-      <line x1="178" y1="195" x2="195" y2="195" stroke={FG} strokeWidth="1.5" />
-      <line x1="82" y1="195" x2="65" y2="195" stroke={FG} strokeWidth="1.5" />
-      <line x1="65" y1="195" x2="65" y2="178" stroke={FG} strokeWidth="1.5" />
-
-      {/* Subtle center crosshair */}
-      <line x1="122" y1="130" x2="138" y2="130" stroke={MUTED} strokeWidth="0.5" opacity="0.35" />
-      <line x1="130" y1="122" x2="130" y2="138" stroke={MUTED} strokeWidth="0.5" opacity="0.35" />
-
-      {/* Minimal mark: circle expands in */}
-      <circle cx="130" cy="112" r="4" stroke={FG} strokeWidth="1.5" fill="none" opacity="0">
-        <animate attributeName="r" values="4;4;22;22;22;4" keyTimes="0;0.1;0.28;0.6;0.85;0.96" dur="5s" repeatCount="indefinite" />
-        <animate attributeName="opacity" values="0;0;1;1;1;0" keyTimes="0;0.1;0.28;0.6;0.85;0.96" dur="5s" repeatCount="indefinite" />
+      {/* Outer counter-rotating dashed orbit ring */}
+      <circle cx="130" cy="130" r="72" stroke={MUTED} strokeWidth="0.75" strokeDasharray="4 8" fill="none">
+        <animateTransform attributeName="transform" type="rotate" values="0 130 130;-360 130 130" dur="22s" repeatCount="indefinite" />
       </circle>
 
-      {/* Baseline rule slides out from center */}
-      <line x1="130" y1="144" x2="130" y2="144" stroke={FG} strokeWidth="1" opacity="0">
-        <animate attributeName="x1" values="130;130;104;104;104;130" keyTimes="0;0.32;0.46;0.6;0.85;0.96" dur="5s" repeatCount="indefinite" />
-        <animate attributeName="x2" values="130;130;156;156;156;130" keyTimes="0;0.32;0.46;0.6;0.85;0.96" dur="5s" repeatCount="indefinite" />
-        <animate attributeName="opacity" values="0;0;1;1;1;0" keyTimes="0;0.32;0.46;0.6;0.85;0.96" dur="5s" repeatCount="indefinite" />
-      </line>
+      {/* Icon boundary circle */}
+      <circle cx="130" cy="130" r="52" stroke={FG} strokeWidth="1.5" fill="none" />
 
-      {/* Wordmark placeholder lines */}
-      <line x1="112" y1="154" x2="148" y2="154" stroke={MUTED} strokeWidth="0.75" opacity="0">
-        <animate attributeName="opacity" values="0;0;0;0.45;0.45;0" keyTimes="0;0.38;0.52;0.62;0.85;0.96" dur="5s" repeatCount="indefinite" />
-      </line>
-      <line x1="120" y1="161" x2="140" y2="161" stroke={MUTED} strokeWidth="0.75" opacity="0">
-        <animate attributeName="opacity" values="0;0;0;0.28;0.28;0" keyTimes="0;0.38;0.56;0.64;0.85;0.96" dur="5s" repeatCount="indefinite" />
-      </line>
+      {/* Inner ring — breathes */}
+      <circle cx="130" cy="130" r="38" stroke={RULE} strokeWidth="1" fill="none">
+        <animate attributeName="r" values="38;42;38" dur="4s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1" />
+        <animate attributeName="opacity" values="1;0.4;1" dur="4s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1" />
+      </circle>
+
+      {/* Abstract inner mark — two bars forming a minimal monogram */}
+      <rect x="118" y="118" width="24" height="4" fill={FG}>
+        <animate attributeName="opacity" values="1;0.5;1" dur="4s" repeatCount="indefinite" />
+      </rect>
+      <rect x="118" y="126" width="16" height="4" fill={FG}>
+        <animate attributeName="opacity" values="1;0.5;1" dur="4s" begin="0.2s" repeatCount="indefinite" />
+      </rect>
+      <rect x="118" y="134" width="24" height="4" fill={FG}>
+        <animate attributeName="opacity" values="1;0.5;1" dur="4s" begin="0.4s" repeatCount="indefinite" />
+      </rect>
+
+      {/* Orbiting dot */}
+      <g>
+        <animateTransform attributeName="transform" type="rotate" values="0 130 130;360 130 130" dur="6s" repeatCount="indefinite" />
+        <circle cx="182" cy="130" r="4" fill={FG} />
+        {/* Trailing glow */}
+        <circle cx="182" cy="130" r="7" fill={FG} opacity="0.15" />
+      </g>
+
+      {/* Second slower orbiting dot, offset 180° */}
+      <g>
+        <animateTransform attributeName="transform" type="rotate" values="180 130 130;540 130 130" dur="6s" repeatCount="indefinite" />
+        <circle cx="182" cy="130" r="2.5" fill={MUTED} />
+      </g>
+
+      {/* Pulse ring expanding from icon */}
+      <circle cx="130" cy="130" r="52" stroke={FG} strokeWidth="1" fill="none" opacity="0">
+        <animate attributeName="r" values="52;80;80" dur="3.5s" repeatCount="indefinite" />
+        <animate attributeName="opacity" values="0.5;0;0" dur="3.5s" repeatCount="indefinite" />
+      </circle>
     </Wrap>
   )
 }
@@ -422,52 +464,54 @@ function G10() {
   )
 }
 
-// Q11: Pages — site map tree drawing itself
+// Q11: Pages — page cards pop in as a staggered grid, each with a tiny wireframe inside
 function G11() {
-  // Root → 3 children → some grandchildren
-  const lineProps = (i: number) => ({
-    stroke: FG,
-    strokeWidth: "1" as const,
-    opacity: "0" as const,
-    children: (
-      <animate
-        attributeName="opacity"
-        values="0;0;1"
-        keyTimes={`0;${i * 0.07};${i * 0.07 + 0.1}`}
-        dur="4s"
-        repeatCount="indefinite"
-      />
-    ),
-  })
+  const pages = [
+    { label: "HOME",    x: 42,  y: 68  },
+    { label: "ABOUT",   x: 103, y: 68  },
+    { label: "WORK",    x: 164, y: 68  },
+    { label: "SHOP",    x: 42,  y: 155 },
+    { label: "JOURNAL", x: 103, y: 155 },
+    { label: "CONTACT", x: 164, y: 155 },
+  ]
+  const cardW = 52
+  const cardH = 72
+  const dur = 5.4
+
   return (
     <Wrap>
-      {/* Root */}
-      <circle cx="130" cy="52" r="6" stroke={FG} strokeWidth="1.5" {...{ opacity: "0" }}>
-        <animate attributeName="opacity" values="0;0;1" keyTimes="0;0;0.07" dur="4s" repeatCount="indefinite" />
-      </circle>
-      {/* Root → L1 lines */}
-      <line x1="130" y1="58" x2="72" y2="100" {...lineProps(1)} />
-      <line x1="130" y1="58" x2="130" y2="100" {...lineProps(2)} />
-      <line x1="130" y1="58" x2="188" y2="100" {...lineProps(3)} />
-      {/* L1 nodes */}
-      {[72, 130, 188].map((cx, i) => (
-        <circle key={cx} cx={cx} cy="106" r="5" stroke={FG} strokeWidth="1" opacity="0">
-          <animate attributeName="opacity" values="0;0;1" keyTimes={`0;${(i + 4) * 0.07};${(i + 4) * 0.07 + 0.1}`} dur="4s" repeatCount="indefinite" />
-        </circle>
-      ))}
-      {/* L1 → L2 lines */}
-      <line x1="72" y1="111" x2="52" y2="150" {...lineProps(7)} />
-      <line x1="72" y1="111" x2="92" y2="150" {...lineProps(8)} />
-      <line x1="130" y1="111" x2="120" y2="150" {...lineProps(9)} />
-      <line x1="130" y1="111" x2="140" y2="150" {...lineProps(10)} />
-      <line x1="188" y1="111" x2="178" y2="150" {...lineProps(11)} />
-      <line x1="188" y1="111" x2="198" y2="150" {...lineProps(12)} />
-      {/* L2 nodes */}
-      {[52, 92, 120, 140, 178, 198].map((cx, i) => (
-        <circle key={cx} cx={cx} cy="155" r="4" stroke={FG} strokeWidth="1" opacity="0">
-          <animate attributeName="opacity" values="0;0;1" keyTimes={`0;${(i + 13) * 0.05};${(i + 13) * 0.05 + 0.08}`} dur="4s" repeatCount="indefinite" />
-        </circle>
-      ))}
+      {pages.map((p, i) => {
+        const begin = `${i * 0.22}s`
+        return (
+          <g key={p.label}>
+            {/* Card outline */}
+            <rect x={p.x} y={p.y} width={cardW} height={cardH} stroke={MUTED} strokeWidth="0.75" fill="none" rx="1" opacity="0">
+              <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.12;0.82;1" dur={`${dur}s`} begin={begin} repeatCount="indefinite" />
+              <animate attributeName="stroke" values={`${MUTED};${FG};${MUTED};${MUTED}`} keyTimes="0;0.15;0.6;1" dur={`${dur}s`} begin={begin} repeatCount="indefinite" />
+            </rect>
+            {/* Hero strip */}
+            <rect x={p.x + 4} y={p.y + 4} width={cardW - 8} height={18} fill={RULE} rx="1" opacity="0">
+              <animate attributeName="opacity" values="0;0.6;0.6;0" keyTimes="0;0.15;0.82;1" dur={`${dur}s`} begin={begin} repeatCount="indefinite" />
+            </rect>
+            {/* Content lines */}
+            <rect x={p.x + 4} y={p.y + 28} width={cardW - 8} height="4" fill={RULE} rx="1" opacity="0">
+              <animate attributeName="opacity" values="0;0.4;0.4;0" keyTimes="0;0.18;0.82;1" dur={`${dur}s`} begin={begin} repeatCount="indefinite" />
+            </rect>
+            <rect x={p.x + 4} y={p.y + 36} width={cardW - 18} height="4" fill={RULE} rx="1" opacity="0">
+              <animate attributeName="opacity" values="0;0.3;0.3;0" keyTimes="0;0.2;0.82;1" dur={`${dur}s`} begin={begin} repeatCount="indefinite" />
+            </rect>
+            <rect x={p.x + 4} y={p.y + 44} width={cardW - 12} height="4" fill={RULE} rx="1" opacity="0">
+              <animate attributeName="opacity" values="0;0.25;0.25;0" keyTimes="0;0.22;0.82;1" dur={`${dur}s`} begin={begin} repeatCount="indefinite" />
+            </rect>
+            {/* Page label */}
+            <text x={p.x + cardW / 2} y={p.y + cardH - 7} textAnchor="middle" fontFamily={MONO} fontSize="5" fill={MUTED} letterSpacing="1.5" opacity="0">
+              {p.label}
+              <animate attributeName="opacity" values="0;0.6;0.6;0" keyTimes="0;0.18;0.82;1" dur={`${dur}s`} begin={begin} repeatCount="indefinite" />
+              <animate attributeName="fill" values={`${MUTED};${FG};${MUTED};${MUTED}`} keyTimes="0;0.18;0.55;1" dur={`${dur}s`} begin={begin} repeatCount="indefinite" />
+            </text>
+          </g>
+        )
+      })}
     </Wrap>
   )
 }

@@ -258,7 +258,8 @@ export default function App() {
   const progress = Math.pow(progressFraction, 0.6)
 
   return (
-    <main className="flex min-h-screen">
+    <main className="flex min-h-screen flex-col">
+      <div className="flex flex-1">
       {/* Left: question content */}
       <section className="flex w-full flex-col lg:w-1/2">
         <div className="flex flex-1 flex-col justify-center">
@@ -309,13 +310,6 @@ export default function App() {
           </div>
           </div>
         </div>
-        {/* Progress bar */}
-        <div className="relative h-px w-full bg-rule">
-          <div
-            className="absolute inset-y-0 left-0 bg-fg transition-[width] duration-500 ease-out"
-            style={{ width: `${progress * 100}%` }}
-          />
-        </div>
       </section>
 
       {/* Right: motion graphic */}
@@ -327,6 +321,15 @@ export default function App() {
           <QuestionGraphic index={displayIndex} isReview={isDisplayReview} />
         </div>
       </aside>
+      </div>
+
+      {/* Full-width progress bar */}
+      <div className="relative h-px w-full bg-rule">
+        <div
+          className="absolute inset-y-0 left-0 bg-fg transition-[width] duration-500 ease-out"
+          style={{ width: `${progress * 100}%` }}
+        />
+      </div>
     </main>
   )
 }
