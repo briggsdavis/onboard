@@ -48,6 +48,7 @@ export type Question =
       prompt: string
       hint?: string
       options: { value: string; label: string; blurb?: string }[]
+      allowOther?: { label: string; placeholder?: string }
       required?: boolean
     }
   | {
@@ -70,6 +71,22 @@ export type Question =
       itemNounSource?: { answerId: string; map: Record<string, { prompt: string; noun: string }> }
       required?: boolean
     }
+  | {
+      id: string
+      kind: "offerings"
+      prompt: string
+      hint?: string
+      required?: boolean
+    }
+  | {
+      id: string
+      kind: "links"
+      prompt: string
+      hint?: string
+      placeholder?: string
+      uploads?: { hint?: string; accept?: string }
+      required?: boolean
+    }
 
 export type UploadedFile = {
   key: string
@@ -83,7 +100,26 @@ export type RangeValue = [number, number]
 
 export type ListItem = { id: string; name: string; description: string }
 
-export type AnswerValue = string | string[] | UploadedFile[] | RangeValue | ListItem[]
+export type Offering = {
+  id: string
+  name: string
+  description: string
+  kind: "service" | "product"
+}
+
+export type LinksValue = {
+  links: string[]
+  files: UploadedFile[]
+}
+
+export type AnswerValue =
+  | string
+  | string[]
+  | UploadedFile[]
+  | RangeValue
+  | ListItem[]
+  | Offering[]
+  | LinksValue
 
 export type Answers = Record<string, AnswerValue>
 
@@ -97,11 +133,10 @@ export const questions: Question[] = [
     required: true,
   },
   {
-    id: "business_what",
-    kind: "long_text",
-    prompt: "In a few sentences, what do you sell?",
-    hint: "Imagine telling a stranger at a dinner party.",
-    placeholder: "We sell…",
+    id: "offerings",
+    kind: "offerings",
+    prompt: "What do you sell?",
+    hint: "Add each service or product. A name, optional description, and whether it's a service or a product.",
     required: true,
   },
   {
@@ -132,6 +167,19 @@ export const questions: Question[] = [
     required: true,
   },
   {
+    id: "branding_amount",
+    kind: "single_select",
+    prompt: "How much branding do you already have?",
+    hint: "Be honest — we'll work with whatever you've got.",
+    options: [
+      { value: "none", label: "Nothing at all", blurb: "Starting from scratch." },
+      { value: "logo_only", label: "Just a logo" },
+      { value: "basic", label: "Some basic ideas", blurb: "Colors, a font, a vague direction." },
+      { value: "full_kit", label: "Full brand kit", blurb: "Guidelines, assets, the works." },
+    ],
+    allowOther: { label: "Other", placeholder: "Describe what you have…" },
+  },
+  {
     id: "logo",
     kind: "file_upload",
     prompt: "Upload your logo, if you have one.",
@@ -155,25 +203,18 @@ export const questions: Question[] = [
     multiple: true,
   },
   {
-    id: "inspiration_shots",
-    kind: "file_upload",
-    prompt: "Screenshots of sites you like?",
-    hint: "Drop in any captures that show the look or feel you're after.",
-    multiple: true,
-    accept: "image/*",
-  },
-  {
-    id: "inspiration_links",
-    kind: "long_text",
-    prompt: "Links to sites you like?",
-    hint: "One per line. A note on what you like about each helps.",
+    id: "inspiration",
+    kind: "links",
+    prompt: "Sites you like?",
+    hint: "Add links one at a time, and drop in any screenshots that capture the look you're after.",
     placeholder: "https://…",
+    uploads: { hint: "Screenshots of sites you like", accept: "image/*" },
   },
   {
     id: "competitors",
-    kind: "long_text",
+    kind: "links",
     prompt: "Links to competitors?",
-    hint: "One per line. Anyone you're benchmarking against or want to differentiate from.",
+    hint: "Anyone you're benchmarking against or want to differentiate from. Add one at a time.",
     placeholder: "https://…",
   },
   {
@@ -190,6 +231,7 @@ export const questions: Question[] = [
       { value: "booking", label: "Booking" },
       { value: "menu", label: "Menu" },
     ],
+    allowOther: { label: "Other", placeholder: "Describe the page…" },
     required: true,
   },
   {
@@ -206,6 +248,7 @@ export const questions: Question[] = [
       { value: "auth", label: "Login / accounts" },
       { value: "analytics", label: "Analytics" },
     ],
+    allowOther: { label: "Other", placeholder: "Describe the feature…" },
   },
   {
     id: "budget",
@@ -229,5 +272,12 @@ export const questions: Question[] = [
     kind: "long_text",
     prompt: "Anything else we should know?",
     placeholder: "References, must-haves, things to avoid…",
+  },
+  {
+    id: "questions_for_us",
+    kind: "long_text",
+    prompt: "Do you have any questions for us?",
+    hint: "Anything you'd like us to address.",
+    placeholder: "Ask away…",
   },
 ]

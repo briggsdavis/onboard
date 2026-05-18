@@ -7,16 +7,20 @@ import {
   questions,
   type Answers,
   type AnswerValue,
+  type LinksValue,
   type ListItem,
+  type Offering,
   type Question,
   type UploadedFile,
 } from "./questions"
 import {
   ColorField,
   FileUpload,
+  LinksField,
   ListField,
   LongText,
   MultiSelect,
+  OfferingsField,
   RangeSlider,
   ShortText,
   SingleSelect,
@@ -27,12 +31,14 @@ const STORAGE_KEY = "sidebrary.intake.v1"
 
 type Saved = { answers: Answers; index: number }
 
+const REVIEW_INDEX = questions.length
+
 function loadSaved(): Saved {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw) {
       const parsed = JSON.parse(raw) as Saved
-      const clamped = Math.max(0, Math.min(parsed.index ?? 0, questions.length - 1))
+      const clamped = Math.max(0, Math.min(parsed.index ?? 0, REVIEW_INDEX))
       return { answers: parsed.answers ?? {}, index: clamped }
     }
   } catch {}
@@ -45,6 +51,8 @@ function defaultValue(q: Question | undefined): AnswerValue {
   if (q.kind === "file_upload") return []
   if (q.kind === "range") return [q.min, q.max]
   if (q.kind === "list") return []
+  if (q.kind === "offerings") return [] as Offering[]
+  if (q.kind === "links") return { links: [""], files: [] } as LinksValue
   return ""
 }
 
@@ -53,7 +61,10 @@ function isEmpty(v: AnswerValue) {
     if (v.startsWith("other:")) return v.slice("other:".length).trim() === ""
     return v.trim() === ""
   }
-  return v.length === 0
+  if (Array.isArray(v)) return v.length === 0
+  // LinksValue
+  const lv = v as LinksValue
+  return lv.links.filter((l) => l.trim() !== "").length === 0 && lv.files.length === 0
 }
 
 type SubmitState = { kind: "idle" } | { kind: "success" } | { kind: "error" }
@@ -79,6 +90,7 @@ export default function App() {
   })
 
   const total = questions.length
+  const isReview = index === REVIEW_INDEX
 
   const [displayIndex, setDisplayIndex] = useState(index)
   const [phase, setPhase] = useState<"in" | "out">("in")
@@ -93,9 +105,10 @@ export default function App() {
     return () => clearTimeout(t)
   }, [index, displayIndex])
 
+  const isDisplayReview = displayIndex === REVIEW_INDEX
   const q = questions[displayIndex]
 
-  const value = useMemo(() => answers[q?.id] ?? defaultValue(q), [answers, q])
+  const value = useMemo(() => (q ? (answers[q.id] ?? defaultValue(q)) : ""), [answers, q])
 
   const sourceLogoStorageId = useMemo(() => {
     if (q?.kind !== "color" || !q.sourceAnswerId) return null
@@ -141,11 +154,11 @@ export default function App() {
   const setValue = (v: AnswerValue) =>
     setState((s) => ({ ...s, answers: { ...s.answers, [q.id]: v } }))
 
-  const canAdvance = !q?.required || !isEmpty(answers[q.id] ?? defaultValue(q))
+  const canAdvance = isReview || !q?.required || !isEmpty(answers[q.id] ?? defaultValue(q))
 
   const next = () => {
     if (phase === "out" || !canAdvance) return
-    if (index < total - 1) {
+    if (index < REVIEW_INDEX) {
       setState((s) => ({ ...s, index: s.index + 1 }))
     } else {
       submit()
@@ -212,25 +225,33 @@ export default function App() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center gap-8 px-6 sm:px-10">
+    <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center gap-8 px-6 sm:px-10 py-16">
       <div
-        key={q.id}
+        key={isDisplayReview ? "__review__" : q.id}
         className={`flex flex-col gap-8 ${phase === "out" ? "animate-question-out" : "animate-question-in"}`}
       >
         <div className="font-mono text-xs uppercase tracking-widest text-muted">
-          {String(displayIndex + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
+          {isDisplayReview
+            ? "Review"
+            : `${String(displayIndex + 1).padStart(2, "0")} / ${String(total).padStart(2, "0")}`}
         </div>
 
-        <h1 className="text-4xl font-light tracking-tight sm:text-5xl">{prompt}</h1>
+        <h1 className="text-4xl font-light tracking-tight sm:text-5xl">
+          {isDisplayReview ? "Review your answers." : prompt}
+        </h1>
 
-        <Field
-          q={q}
-          value={value}
-          setValue={setValue}
-          onSubmit={next}
-          suggested={suggested}
-          listNoun={listNoun}
-        />
+        {isDisplayReview ? (
+          <ReviewSummary answers={answers} onEdit={(i) => setState((s) => ({ ...s, index: i }))} />
+        ) : (
+          <Field
+            q={q}
+            value={value}
+            setValue={setValue}
+            onSubmit={next}
+            suggested={suggested}
+            listNoun={listNoun}
+          />
+        )}
 
         <div className="flex items-center gap-6 pt-2">
           <button
@@ -246,7 +267,7 @@ export default function App() {
             disabled={!canAdvance}
             className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-fg transition-opacity hover:opacity-70 disabled:opacity-15"
           >
-            {index === total - 1 ? "Submit" : "Next"}
+            {isReview ? "Submit" : "Next"}
             <ArrowRight size={14} weight="regular" />
           </button>
         </div>
@@ -289,5 +310,106 @@ function Field({
       return <RangeSlider q={q} value={value as [number, number]} onChange={setValue} />
     case "list":
       return <ListField q={q} value={value as ListItem[]} onChange={setValue} noun={listNoun} />
+    case "offerings":
+      return <OfferingsField q={q} value={value as Offering[]} onChange={setValue} />
+    case "links":
+      return <LinksField q={q} value={value as LinksValue} onChange={setValue} />
   }
+}
+
+function formatAnswer(q: Question, value: AnswerValue): string {
+  if (value === undefined || value === null) return ""
+  switch (q.kind) {
+    case "short_text":
+    case "long_text": {
+      const s = value as string
+      return s.startsWith("other:") ? s.slice("other:".length) : s
+    }
+    case "single_select": {
+      const s = value as string
+      if (s.startsWith("other:")) return s.slice("other:".length) || "Other"
+      const hit = q.options.find((o) => o.value === s)
+      return hit?.label ?? s
+    }
+    case "multi_select": {
+      const arr = value as string[]
+      return arr
+        .map((v) => {
+          if (v.startsWith("other:")) return v.slice("other:".length) || "Other"
+          return q.options.find((o) => o.value === v)?.label ?? v
+        })
+        .join(", ")
+    }
+    case "color":
+      return (value as string[]).join(", ")
+    case "range": {
+      const [lo, hi] = value as [number, number]
+      if (q.format === "currency") return `$${lo.toLocaleString()} – $${hi.toLocaleString()}`
+      return `${lo} – ${hi}`
+    }
+    case "file_upload": {
+      const files = value as UploadedFile[]
+      if (files.length === 0) return ""
+      return files.map((f) => f.name).join(", ")
+    }
+    case "list": {
+      const items = value as ListItem[]
+      return items
+        .map((i) => i.name)
+        .filter(Boolean)
+        .join(", ")
+    }
+    case "offerings": {
+      const items = value as Offering[]
+      return items
+        .filter((i) => i.name.trim() !== "")
+        .map((i) => `${i.name} (${i.kind})`)
+        .join(", ")
+    }
+    case "links": {
+      const lv = value as LinksValue
+      const links = lv.links.filter((l) => l.trim() !== "")
+      const parts: string[] = []
+      if (links.length) parts.push(links.join(", "))
+      if (lv.files.length) parts.push(`${lv.files.length} file${lv.files.length === 1 ? "" : "s"}`)
+      return parts.join(" · ")
+    }
+  }
+}
+
+function ReviewSummary({ answers, onEdit }: { answers: Answers; onEdit: (index: number) => void }) {
+  return (
+    <div className="flex flex-col divide-y divide-rule border-t border-b border-rule">
+      {questions.map((q, i) => {
+        const raw = answers[q.id]
+        const v = raw === undefined ? defaultValue(q) : raw
+        const formatted = formatAnswer(q, v)
+        const empty = isEmpty(v) || formatted === ""
+        return (
+          <button
+            key={q.id}
+            onClick={() => onEdit(i)}
+            className="group flex items-center gap-4 px-4 py-4 text-left transition-colors hover:bg-white/5"
+          >
+            <span className="font-mono w-8 shrink-0 text-xs uppercase tracking-widest text-muted">
+              {String(i + 1).padStart(2, "0")}
+            </span>
+            <div className="flex flex-1 flex-col gap-1">
+              <span className="font-mono text-xs uppercase tracking-widest text-muted">
+                {q.prompt}
+              </span>
+              <span
+                className={`text-base font-light tracking-tight ${empty ? "text-muted italic" : "text-fg"}`}
+              >
+                {empty ? "—" : formatted}
+              </span>
+            </div>
+            <span className="font-mono shrink-0 text-xs uppercase tracking-widest text-muted opacity-0 transition-opacity group-hover:opacity-100">
+              Edit
+            </span>
+          </button>
+        )
+      })}
+    </div>
+  )
 }
