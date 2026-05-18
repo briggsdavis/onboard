@@ -248,16 +248,18 @@ function G05() {
       {/* Level labels */}
       {(["NONE", "LOGO ONLY", "SOME IDEAS", "FULL KIT"] as const).map((label, i) => {
         const s = i * 0.25
-        const e = i < 3 ? (i + 1) * 0.25 - 0.02 : 0.95
+        const fadeIn = s + 0.04
+        const hold = i < 3 ? (i + 1) * 0.25 - 0.02 : 0.95
+        const gone = Math.min(hold + 0.02, 0.99)
         return (
           <text key={label} x="130" y="228" textAnchor="middle"
             fontFamily={MONO} fontSize="7" fill={MUTED} letterSpacing="3" opacity="0">
             {label}
-            <animate attributeName="opacity" values="0;0;1;1;0"
-              keyTimes={`0;${s > 0 ? s : 0.001};${s + 0.04};${e};1`}
+            <animate attributeName="opacity" values="0;0;1;1;0;0"
+              keyTimes={`0;${s > 0 ? s : 0.001};${fadeIn};${hold};${gone};1`}
               dur={`${dur}s`} repeatCount="indefinite" />
-            <animate attributeName="y" values="234;234;228;228;224"
-              keyTimes={`0;${s > 0 ? s : 0.001};${s + 0.04};${e};1`}
+            <animate attributeName="y" values="234;234;228;228;224;224"
+              keyTimes={`0;${s > 0 ? s : 0.001};${fadeIn};${hold};${gone};1`}
               dur={`${dur}s`} repeatCount="indefinite" />
           </text>
         )
@@ -672,15 +674,17 @@ function G13() {
       {/* Tier amount labels */}
       {tiers.map((tier, i) => {
         const s = i * 0.25
-        const e = s + 0.22
+        const fadeIn = s + 0.08
+        const hold = s + 0.22
+        const gone = Math.min(s + 0.24, 0.99)
         return (
           <text key={tier} x="130" y="133" textAnchor="middle"
             fontFamily={MONO} fontSize="22" fontWeight="200" fill={FG}
             letterSpacing="-1" opacity="0">
             {tier}
             <animate attributeName="opacity"
-              values="0;0;1;1;0"
-              keyTimes={`0;${s > 0 ? s : 0.001};${s + 0.08};${e};1`}
+              values="0;0;1;1;0;0"
+              keyTimes={`0;${s > 0 ? s : 0.001};${fadeIn};${hold};${gone};1`}
               dur={`${totalDur}s`} repeatCount="indefinite" />
           </text>
         )
