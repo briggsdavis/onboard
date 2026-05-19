@@ -85,7 +85,7 @@ function LandingFormGraphic() {
             />
 
             {/* Checkbox fill */}
-            <rect x="30" y={boxY} width="12" height="12" rx="2" fill={FG} opacity="0">
+            <rect x="30" y={boxY} width="12" height="12" rx="2" fill={["#E84855", "#3B82F6", "#10B981", "#F59E0B"][i % 4]} opacity="0">
               <animate
                 attributeName="opacity"
                 values={checkStr}
