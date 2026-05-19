@@ -486,9 +486,6 @@ function G10() {
       <line x1="50" y1="50" x2="50" y2="212" stroke={MUTED} strokeWidth="1" />
       <line x1="50" y1="212" x2="212" y2="212" stroke={MUTED} strokeWidth="1" />
 
-      {/* Axis labels */}
-      <text x="53" y="57" fontFamily={MONO} fontSize="6" fill={MUTED} letterSpacing="1">QUALITY</text>
-      <text x="166" y="209" fontFamily={MONO} fontSize="6" fill={MUTED} letterSpacing="1">PRICE</text>
 
       {/* Radar sweep line */}
       <line x1="130" y1="130" x2="214" y2="130" stroke={FG} strokeWidth="0.6"
