@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
-import { QuestionGraphic } from "./motionGraphics"
+import { QuestionGraphic, GThankYou } from "./motionGraphics"
 import { LandingPage } from "./landing"
 import { ArrowLeft, ArrowRight } from "@phosphor-icons/react"
 import { useMutation, useQuery } from "convex/react"
@@ -215,7 +215,7 @@ export default function App() {
   if (submitState.kind === "success") {
     return (
       <main className="flex min-h-screen">
-        <div className="flex flex-1 flex-col justify-center px-8 py-16 lg:px-16">
+        <div className="flex w-full flex-col justify-center px-8 py-16 lg:w-1/2 lg:px-16">
           <div className="mx-auto w-full max-w-xl flex flex-col gap-6">
             <h1 className="text-4xl font-light tracking-tight sm:text-5xl">Thank you.</h1>
             <p className="text-base font-light text-muted leading-relaxed max-w-sm">
@@ -228,6 +228,11 @@ export default function App() {
             </div>
           </div>
         </div>
+        <aside className="hidden lg:flex lg:w-1/2 items-center justify-center border-l border-rule">
+          <div className="flex items-center justify-center p-8 w-full h-full">
+            <GThankYou />
+          </div>
+        </aside>
       </main>
     )
   }

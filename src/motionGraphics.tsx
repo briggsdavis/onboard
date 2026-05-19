@@ -50,7 +50,7 @@ function G01() {
       {/* Baseline */}
       <line x1="40" y1="158" x2="220" y2="158" stroke={RULE} strokeWidth="1" />
       {/* Blinking cursor */}
-      <rect x="42" y="118" width="2" height="32" fill={FG}>
+      <rect x="42" y="118" width="2" height="32" fill="#E84855">
         <animate
           attributeName="opacity"
           values="1;1;0;0"
@@ -77,7 +77,7 @@ function G02() {
       {/* Orbit ring */}
       <circle cx="130" cy="130" r="72" stroke={RULE} strokeWidth="1" strokeDasharray="3 5" />
       {/* Center dot */}
-      <circle cx="130" cy="130" r="4" fill={MUTED} />
+      <circle cx="130" cy="130" r="4" fill="#3B82F6" />
       {/* Orbiting shapes group */}
       <g>
         <animateTransform
@@ -132,7 +132,7 @@ function G03() {
           repeatCount="indefinite"
         />
       </circle>
-      <circle cx="130" cy="130" r="6" fill={FG} />
+      <circle cx="130" cy="130" r="6" fill="#E84855" />
     </Wrap>
   )
 }
@@ -233,7 +233,7 @@ function G04() {
           cx={c.cx}
           cy={c.cy}
           r={0}
-          stroke={FG}
+          stroke={["#E84855", "#3B82F6", "#10B981", "#F59E0B", "#E84855"][i]}
           strokeWidth="1.5"
           fill="none"
           opacity="0"
@@ -638,9 +638,9 @@ function G06() {
           dur="6s"
           repeatCount="indefinite"
         />
-        <circle cx="182" cy="130" r="4" fill={FG} />
+        <circle cx="182" cy="130" r="4" fill="#10B981" />
         {/* Trailing glow */}
-        <circle cx="182" cy="130" r="7" fill={FG} opacity="0.15" />
+        <circle cx="182" cy="130" r="7" fill="#10B981" opacity="0.15" />
       </g>
 
       {/* Second slower orbiting dot, offset 180° */}
@@ -911,7 +911,7 @@ function G09() {
       <rect x="40" y="68" width="180" height="130" stroke={RULE} strokeWidth="1" rx="2" />
       {/* URL bar */}
       <rect x="52" y="78" width="156" height="10" stroke={RULE} strokeWidth="1" rx="2" />
-      <rect x="56" y="80" width="60" height="6" fill={RULE} rx="1">
+      <rect x="56" y="80" width="60" height="6" fill="#3B82F6" rx="1" opacity="0.65">
         <animate
           attributeName="width"
           values="0;60;60;0"
@@ -1006,14 +1006,14 @@ function G10() {
       ))}
 
       {/* YOU — highlighted dot */}
-      <circle cx="130" cy="130" r="5" fill={FG} />
+      <circle cx="130" cy="130" r="5" fill="#E84855" />
       {/* Pulse ring 1 */}
-      <circle cx="130" cy="130" r="5" stroke={FG} strokeWidth="1" fill="none">
+      <circle cx="130" cy="130" r="5" stroke="#E84855" strokeWidth="1" fill="none">
         <animate attributeName="r" values="5;22;5" dur="2.5s" repeatCount="indefinite" />
         <animate attributeName="opacity" values="0.8;0;0.8" dur="2.5s" repeatCount="indefinite" />
       </circle>
       {/* Pulse ring 2 — offset */}
-      <circle cx="130" cy="130" r="5" stroke={FG} strokeWidth="0.5" fill="none">
+      <circle cx="130" cy="130" r="5" stroke="#E84855" strokeWidth="0.5" fill="none">
         <animate
           attributeName="r"
           values="5;30;5"
@@ -1065,6 +1065,7 @@ function G11() {
   const cardW = 52
   const cardH = 72
   const dur = 5.4
+  const accentColors = ["#E84855", "#3B82F6", "#10B981", "#F59E0B", "#E84855", "#3B82F6"]
 
   return (
     <Wrap>
@@ -1094,7 +1095,7 @@ function G11() {
               />
               <animate
                 attributeName="stroke"
-                values={`${MUTED};${FG};${MUTED};${MUTED}`}
+                values={`${MUTED};${accentColors[i]};${MUTED};${MUTED}`}
                 keyTimes="0;0.15;0.6;1"
                 dur={`${dur}s`}
                 begin={begin}
@@ -1240,7 +1241,7 @@ function G12() {
               fill="none"
             />
             {/* Checkbox fill */}
-            <rect x="50" y={y} width="17" height="17" rx="3" fill={FG} opacity="0">
+            <rect x="50" y={y} width="17" height="17" rx="3" fill="#3B82F6" opacity="0">
               <animate
                 attributeName="opacity"
                 values={`0;0;1;1;0`}
@@ -1341,7 +1342,7 @@ function G13() {
         cx="130"
         cy="140"
         r={r}
-        stroke={FG}
+        stroke="#10B981"
         strokeWidth="8"
         strokeLinecap="round"
         strokeDasharray={`0 ${circ}`}
@@ -1448,7 +1449,7 @@ function G14() {
         />
       </line>
       {/* Center dot */}
-      <circle cx="130" cy="130" r="3" fill={FG} />
+      <circle cx="130" cy="130" r="3" fill="#E84855" />
     </Wrap>
   )
 }
@@ -1474,7 +1475,7 @@ function G15() {
         </rect>
       ))}
       {/* Blinking cursor on the active line */}
-      <rect x="50" y="114" width="2" height="12" fill={FG}>
+      <rect x="50" y="114" width="2" height="12" fill="#3B82F6">
         <animate
           attributeName="x"
           values="50;50;50;145;145"
@@ -1521,8 +1522,8 @@ function G16() {
           dur="5s"
           repeatCount="indefinite"
         />
-        <rect x="100" y="140" width="120" height="50" rx="8" stroke={FG} strokeWidth="1" />
-        <polygon points="208,140 208,124 192,140" fill="#000" stroke={FG} strokeWidth="1" />
+        <rect x="100" y="140" width="120" height="50" rx="8" stroke="#10B981" strokeWidth="1" />
+        <polygon points="208,140 208,124 192,140" fill="#000" stroke="#10B981" strokeWidth="1" />
         <rect x="112" y="154" width="80" height="6" fill={MUTED} rx="2" />
         <rect x="112" y="166" width="48" height="6" fill={MUTED} rx="2" />
       </g>
@@ -1541,7 +1542,7 @@ function GReview() {
         fontFamily="Geist Variable, sans-serif"
         fontSize="52"
         fontWeight="200"
-        fill={FG}
+        fill="#10B981"
       >
         ✓
         <animate attributeName="opacity" values="0;1" keyTimes="0;0.3" dur="1s" fill="freeze" />
@@ -1556,6 +1557,85 @@ function GReview() {
         letterSpacing="3"
       >
         ALL DONE
+      </text>
+    </Wrap>
+  )
+}
+
+// Thank you screen — submission confirmed, four colored dots radiate from center
+export function GThankYou() {
+  const colors = ["#E84855", "#3B82F6", "#10B981", "#F59E0B"]
+  const angles = [315, 45, 135, 225]
+
+  return (
+    <Wrap>
+      {/* Expanding ring */}
+      <circle cx="130" cy="130" r="0" stroke={MUTED} strokeWidth="0.5" fill="none">
+        <animate
+          attributeName="r"
+          values="0;70;70"
+          keyTimes="0;0.6;1"
+          dur="3s"
+          repeatCount="indefinite"
+          calcMode="spline"
+          keySplines="0.2 0 0.2 1;1 0 1 0"
+        />
+        <animate
+          attributeName="opacity"
+          values="0.5;0.15;0"
+          keyTimes="0;0.6;1"
+          dur="3s"
+          repeatCount="indefinite"
+        />
+      </circle>
+      {/* Four colored dots radiating from center */}
+      {colors.map((color, i) => {
+        const angle = (angles[i] * Math.PI) / 180
+        const tx = Math.round(130 + Math.cos(angle) * 58)
+        const ty = Math.round(130 + Math.sin(angle) * 58)
+        return (
+          <circle key={i} cx="130" cy="130" r="4" fill={color} opacity="0">
+            <animate
+              attributeName="cx"
+              values={`130;${tx}`}
+              dur="3s"
+              begin={`${i * 0.12}s`}
+              repeatCount="indefinite"
+              calcMode="spline"
+              keySplines="0.2 0 0.2 1"
+            />
+            <animate
+              attributeName="cy"
+              values={`130;${ty}`}
+              dur="3s"
+              begin={`${i * 0.12}s`}
+              repeatCount="indefinite"
+              calcMode="spline"
+              keySplines="0.2 0 0.2 1"
+            />
+            <animate
+              attributeName="opacity"
+              values="0;0.9;0"
+              keyTimes="0;0.35;0.75"
+              dur="3s"
+              begin={`${i * 0.12}s`}
+              repeatCount="indefinite"
+            />
+          </circle>
+        )
+      })}
+      {/* Center checkmark */}
+      <text
+        x="130"
+        y="138"
+        textAnchor="middle"
+        fontFamily="Geist Variable, sans-serif"
+        fontSize="48"
+        fontWeight="200"
+        fill={FG}
+      >
+        ✓
+        <animate attributeName="opacity" values="0;1" keyTimes="0;0.3" dur="1s" fill="freeze" />
       </text>
     </Wrap>
   )
