@@ -44,20 +44,20 @@ function LandingFormGraphic() {
           kts.push(+(s - 0.01).toFixed(4))
           kts.push(+(s + 0.02).toFixed(4))
         }
-        kts.push(+(tickAt).toFixed(4))
+        kts.push(+tickAt.toFixed(4))
         kts.push(+(tickAt + 0.04).toFixed(4))
-        if (doneAt > tickAt + 0.05) kts.push(+(doneAt).toFixed(4))
-        if (resetAt > doneAt + 0.01) kts.push(+(resetAt).toFixed(4))
+        if (doneAt > tickAt + 0.05) kts.push(+doneAt.toFixed(4))
+        if (resetAt > doneAt + 0.01) kts.push(+resetAt.toFixed(4))
         kts.push(1)
 
         // Deduplicate and ensure strictly increasing
         const cleanKts = kts.filter((v, idx) => idx === 0 || v > kts[idx - 1])
 
         const textVals = cleanKts.map((t) => {
-          if (t < s - 0.005) return 0.18          // future
-          if (t < tickAt + 0.03) return 0.85      // active
-          if (t < resetAt - 0.005) return 0.45    // done
-          return 0.18                             // reset
+          if (t < s - 0.005) return 0.18 // future
+          if (t < tickAt + 0.03) return 0.85 // active
+          if (t < resetAt - 0.005) return 0.45 // done
+          return 0.18 // reset
         })
 
         const checkVals = cleanKts.map((t) => {
@@ -73,44 +73,89 @@ function LandingFormGraphic() {
         return (
           <g key={i}>
             {/* Checkbox outline */}
-            <rect x="30" y={boxY} width="12" height="12" rx="2"
-              stroke={MUTED} strokeWidth="0.75" fill="none" />
+            <rect
+              x="30"
+              y={boxY}
+              width="12"
+              height="12"
+              rx="2"
+              stroke={MUTED}
+              strokeWidth="0.75"
+              fill="none"
+            />
 
             {/* Checkbox fill */}
             <rect x="30" y={boxY} width="12" height="12" rx="2" fill={FG} opacity="0">
-              <animate attributeName="opacity" values={checkStr}
-                keyTimes={ktsStr} dur={`${dur}s`} repeatCount="indefinite" />
+              <animate
+                attributeName="opacity"
+                values={checkStr}
+                keyTimes={ktsStr}
+                dur={`${dur}s`}
+                repeatCount="indefinite"
+              />
             </rect>
 
             {/* Checkmark */}
             <polyline
               points={`${33},${boxY + 6} ${36},${boxY + 9} ${40},${boxY + 3}`}
-              stroke="#000" strokeWidth="1.5" fill="none"
-              strokeLinecap="round" strokeLinejoin="round" opacity="0"
+              stroke="#000"
+              strokeWidth="1.5"
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              opacity="0"
             >
-              <animate attributeName="opacity" values={checkStr}
-                keyTimes={ktsStr} dur={`${dur}s`} repeatCount="indefinite" />
+              <animate
+                attributeName="opacity"
+                values={checkStr}
+                keyTimes={ktsStr}
+                dur={`${dur}s`}
+                repeatCount="indefinite"
+              />
             </polyline>
 
             {/* Question number */}
-            <text x="50" y={rowY} fontFamily={MONO} fontSize="7" fill={MUTED}
-              letterSpacing="1" opacity="0">
+            <text
+              x="50"
+              y={rowY}
+              fontFamily={MONO}
+              fontSize="7"
+              fill={MUTED}
+              letterSpacing="1"
+              opacity="0"
+            >
               {String(i + 1).padStart(2, "0")}
-              <animate attributeName="opacity" values={textVals.map(v => v * 0.7).join(";")}
-                keyTimes={ktsStr} dur={`${dur}s`} repeatCount="indefinite" />
+              <animate
+                attributeName="opacity"
+                values={textVals.map((v) => v * 0.7).join(";")}
+                keyTimes={ktsStr}
+                dur={`${dur}s`}
+                repeatCount="indefinite"
+              />
             </text>
 
             {/* Question text */}
-            <text x="66" y={rowY} fontFamily={SANS} fontSize="8.5" fontWeight="200"
-              fill={FG} opacity="0">
+            <text
+              x="66"
+              y={rowY}
+              fontFamily={SANS}
+              fontSize="8.5"
+              fontWeight="200"
+              fill={FG}
+              opacity="0"
+            >
               {label}
-              <animate attributeName="opacity" values={textStr}
-                keyTimes={ktsStr} dur={`${dur}s`} repeatCount="indefinite" />
+              <animate
+                attributeName="opacity"
+                values={textStr}
+                keyTimes={ktsStr}
+                dur={`${dur}s`}
+                repeatCount="indefinite"
+              />
             </text>
 
             {/* Divider */}
-            <line x1="30" y1={rowY + 10} x2="230" y2={rowY + 10}
-              stroke={RULE} strokeWidth="0.5" />
+            <line x1="30" y1={rowY + 10} x2="230" y2={rowY + 10} stroke={RULE} strokeWidth="0.5" />
           </g>
         )
       })}

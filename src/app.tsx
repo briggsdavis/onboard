@@ -219,7 +219,9 @@ export default function App() {
           <div className="mx-auto w-full max-w-xl flex flex-col gap-6">
             <h1 className="text-4xl font-light tracking-tight sm:text-5xl">Thank you.</h1>
             <p className="text-base font-light text-muted leading-relaxed max-w-sm">
-              Our team will review everything you've shared and start making preparations. We'll be in touch shortly to set up a meeting where we can align on the details, fill any gaps, and get the project moving.
+              Our team will review everything you've shared and start making preparations. We'll be
+              in touch shortly to set up a meeting where we can align on the details, fill any gaps,
+              and get the project moving.
             </p>
             <div className="font-mono text-xs uppercase tracking-widest text-muted">
               You'll hear from us soon.
@@ -264,76 +266,81 @@ export default function App() {
   return (
     <main className="flex min-h-screen flex-col">
       <div className="flex flex-1">
-      {/* Left: question content */}
-      <section className="flex w-full flex-col lg:w-1/2">
-        <div className="flex flex-1 flex-col justify-center">
-          <div className="mx-auto w-full max-w-xl px-8 py-16 sm:px-10">
-            <div
-              key={isDisplayReview ? "__review__" : q.id}
-              className={`flex flex-col gap-8 ${phase === "out" ? "animate-question-out" : "animate-question-in"}`}
-            >
-              {isDisplayReview && (
-                <div className="font-mono text-xs uppercase tracking-widest text-muted">Review</div>
-              )}
-
-              <h1 className="text-4xl font-light tracking-tight sm:text-5xl">
-                {isDisplayReview ? "Review your answers." : prompt}
-              </h1>
-
-            {isDisplayReview ? (
-              <ReviewSummary answers={answers} onEdit={(i) => setState((s) => ({ ...s, index: i }))} />
-            ) : (
-              <Field
-                q={q}
-                value={value}
-                setValue={setValue}
-                onSubmit={next}
-                suggested={suggested}
-                listNoun={listNoun}
-              />
-            )}
-
-            <div className="flex items-center gap-6 pt-2">
-              {index === 0 ? (
-                <button
-                  onClick={() => setScreen("landing")}
-                  className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-muted transition-opacity hover:opacity-70"
-                >
-                  <ArrowLeft size={14} weight="regular" />
-                  Landing
-                </button>
-              ) : (
-                <button
-                  onClick={prev}
-                  className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-fg transition-opacity hover:opacity-70"
-                >
-                  <ArrowLeft size={14} weight="regular" />
-                  Back
-                </button>
-              )}
-              <button
-                onClick={next}
-                disabled={!canAdvance}
-                className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-fg transition-opacity hover:opacity-70 disabled:opacity-15"
+        {/* Left: question content */}
+        <section className="flex w-full flex-col lg:w-1/2">
+          <div className="flex flex-1 flex-col justify-center">
+            <div className="mx-auto w-full max-w-xl px-8 py-16 sm:px-10">
+              <div
+                key={isDisplayReview ? "__review__" : q.id}
+                className={`flex flex-col gap-8 ${phase === "out" ? "animate-question-out" : "animate-question-in"}`}
               >
-                {isReview ? "Submit" : "Next"}
-                <ArrowRight size={14} weight="regular" />
-              </button>
+                {isDisplayReview && (
+                  <div className="font-mono text-xs uppercase tracking-widest text-muted">
+                    Review
+                  </div>
+                )}
+
+                <h1 className="text-4xl font-light tracking-tight sm:text-5xl">
+                  {isDisplayReview ? "Review your answers." : prompt}
+                </h1>
+
+                {isDisplayReview ? (
+                  <ReviewSummary
+                    answers={answers}
+                    onEdit={(i) => setState((s) => ({ ...s, index: i }))}
+                  />
+                ) : (
+                  <Field
+                    q={q}
+                    value={value}
+                    setValue={setValue}
+                    onSubmit={next}
+                    suggested={suggested}
+                    listNoun={listNoun}
+                  />
+                )}
+
+                <div className="flex items-center gap-6 pt-2">
+                  {index === 0 ? (
+                    <button
+                      onClick={() => setScreen("landing")}
+                      className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-muted transition-opacity hover:opacity-70"
+                    >
+                      <ArrowLeft size={14} weight="regular" />
+                      Landing
+                    </button>
+                  ) : (
+                    <button
+                      onClick={prev}
+                      className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-fg transition-opacity hover:opacity-70"
+                    >
+                      <ArrowLeft size={14} weight="regular" />
+                      Back
+                    </button>
+                  )}
+                  <button
+                    onClick={next}
+                    disabled={!canAdvance}
+                    className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-fg transition-opacity hover:opacity-70 disabled:opacity-15"
+                  >
+                    {isReview ? "Submit" : "Next"}
+                    <ArrowRight size={14} weight="regular" />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-          </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Right: motion graphic */}
-      <aside className="hidden lg:flex lg:w-1/2 items-center justify-center border-l border-rule">
-        <div
-          key={isDisplayReview ? "__review__" : q?.id}
-          className={`flex items-center justify-center p-8 w-full h-full ${phase === "out" ? "animate-graphic-out" : "animate-graphic-in"}`}
-        >
-          <QuestionGraphic index={displayIndex} isReview={isDisplayReview} />
-        </div>
-      </aside>
+        {/* Right: motion graphic */}
+        <aside className="hidden lg:flex lg:w-1/2 items-center justify-center border-l border-rule">
+          <div
+            key={isDisplayReview ? "__review__" : q?.id}
+            className={`flex items-center justify-center p-8 w-full h-full ${phase === "out" ? "animate-graphic-out" : "animate-graphic-in"}`}
+          >
+            <QuestionGraphic index={displayIndex} isReview={isDisplayReview} />
+          </div>
+        </aside>
       </div>
 
       {/* Full-width progress bar */}

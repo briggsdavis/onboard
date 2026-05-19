@@ -13,8 +13,6 @@ const isAdmin = window.location.pathname.startsWith("/admin")
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ConvexProvider client={convex}>
-      {isAdmin ? <Admin /> : <App />}
-    </ConvexProvider>
+    <ConvexProvider client={convex}>{isAdmin ? <Admin /> : <App />}</ConvexProvider>
   </StrictMode>,
 )
