@@ -132,7 +132,7 @@ export function LandingPage({
       {/* Left: message + actions */}
       <div className="flex w-full flex-col justify-center px-8 py-16 lg:w-1/2 lg:px-16">
         <div className="mx-auto w-full max-w-sm flex flex-col gap-10">
-          <h1 className="text-4xl font-light tracking-tight sm:text-5xl">
+          <h1 className="text-2xl font-light tracking-tight sm:text-3xl">
             We're so glad you're here, and we can't wait to get started.
           </h1>
           <div className="flex flex-col items-start gap-5">
