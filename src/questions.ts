@@ -49,6 +49,8 @@ export type Question =
       hint?: string
       options: { value: string; label: string; blurb?: string }[]
       allowOther?: { label: string; placeholder?: string }
+      max?: number
+      clashes?: [string, string][]
       required?: boolean
     }
   | {
@@ -148,9 +150,9 @@ export const questions: Question[] = [
   },
   {
     id: "vibe",
-    kind: "single_select",
+    kind: "multi_select",
     prompt: "Pick a vibe.",
-    hint: "We can blend later. Start with the one that's closest.",
+    hint: "Choose up to 3. We'll blend them into something that feels like you.",
     options: [
       {
         value: "editorial",
@@ -163,7 +165,16 @@ export const questions: Question[] = [
       { value: "organic", label: "Organic", blurb: "Earthy palette, soft shapes." },
       { value: "technical", label: "Technical", blurb: "Dense, precise, schematic." },
     ],
-    allowOther: { label: "Something else", placeholder: "Describe the vibe…" },
+    max: 3,
+    clashes: [
+      ["organic", "luxury"],
+      ["organic", "brutalist"],
+      ["organic", "technical"],
+      ["playful", "luxury"],
+      ["playful", "technical"],
+      ["brutalist", "luxury"],
+      ["editorial", "playful"],
+    ],
     required: true,
   },
   {

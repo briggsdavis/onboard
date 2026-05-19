@@ -635,6 +635,22 @@ export function MultiSelect({
     .filter((i) => i >= 0)
   const lastOtherRef = useRef<HTMLInputElement>(null)
 
+  const selectedValues = value.filter((v) => !v.startsWith("other:") && v !== "other")
+  const atMax = q.max !== undefined && value.length >= q.max
+
+  const clashWarning = q.clashes
+    ? (() => {
+        for (const [a, b] of q.clashes) {
+          if (selectedValues.includes(a) && selectedValues.includes(b)) {
+            const labelA = q.options.find((o) => o.value === a)?.label ?? a
+            const labelB = q.options.find((o) => o.value === b)?.label ?? b
+            return `${labelA} and ${labelB} tend to clash — they might pull the design in opposite directions.`
+          }
+        }
+        return null
+      })()
+    : null
+
   const toggle = (v: string) =>
     onChange(value.includes(v) ? value.filter((x) => x !== v) : [...value, v])
 
@@ -653,14 +669,18 @@ export function MultiSelect({
       <div className="flex flex-wrap gap-2">
         {q.options.map((opt) => {
           const active = value.includes(opt.value)
+          const disabled = !active && atMax
           return (
             <button
               key={opt.value}
-              onClick={() => toggle(opt.value)}
+              onClick={() => !disabled && toggle(opt.value)}
+              disabled={disabled}
               className={`border px-4 py-2 text-base font-light tracking-tight transition-colors ${
                 active
                   ? "border-fg bg-fg text-bg"
-                  : "border-rule text-muted hover:border-fg hover:text-fg"
+                  : disabled
+                    ? "cursor-not-allowed border-rule text-muted opacity-30"
+                    : "border-rule text-muted hover:border-fg hover:text-fg"
               }`}
             >
               {opt.label}
@@ -670,13 +690,17 @@ export function MultiSelect({
         {q.allowOther && (
           <button
             onClick={addOther}
-            className="flex items-center gap-2 border border-rule px-4 py-2 text-base font-light tracking-tight text-muted transition-colors hover:border-fg hover:text-fg"
+            disabled={atMax}
+            className={`flex items-center gap-2 border border-rule px-4 py-2 text-base font-light tracking-tight text-muted transition-colors ${atMax ? "cursor-not-allowed opacity-30" : "hover:border-fg hover:text-fg"}`}
           >
             <Plus size={14} weight="regular" />
             {q.allowOther.label}
           </button>
         )}
       </div>
+      {clashWarning && (
+        <p className="text-sm font-light text-red-500">{clashWarning}</p>
+      )}
       {q.allowOther && otherIndices.length > 0 && (
         <div className="flex flex-col gap-2">
           {otherIndices.map((vi, n) => {
