@@ -218,8 +218,11 @@ export default function App() {
         <div className="flex flex-1 flex-col justify-center px-8 py-16 lg:px-16">
           <div className="mx-auto w-full max-w-xl flex flex-col gap-6">
             <h1 className="text-4xl font-light tracking-tight sm:text-5xl">Thank you.</h1>
+            <p className="text-base font-light text-muted leading-relaxed max-w-sm">
+              Our team will review everything you've shared and start making preparations. We'll be in touch shortly to set up a meeting where we can align on the details, fill any gaps, and get the project moving.
+            </p>
             <div className="font-mono text-xs uppercase tracking-widest text-muted">
-              Your responses have been saved.
+              You'll hear from us soon.
             </div>
           </div>
         </div>
