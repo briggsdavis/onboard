@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { QuestionGraphic } from "./motionGraphics"
+import { LandingPage } from "./landing"
 import { ArrowLeft, ArrowRight } from "@phosphor-icons/react"
 import { useMutation, useQuery } from "convex/react"
 import { api } from "../convex/_generated/api"
@@ -70,8 +71,17 @@ function isEmpty(v: AnswerValue) {
 
 type SubmitState = { kind: "idle" } | { kind: "success" } | { kind: "error" }
 
+function hasAnyProgress(answers: Answers, index: number) {
+  if (index > 0) return true
+  return Object.values(answers).some((v) => {
+    if (typeof v === "string") return v.trim() !== ""
+    if (Array.isArray(v)) return v.length > 0
+    return true
+  })
+}
+
 export default function App() {
-  const [welcomed, setWelcomed] = useState(false)
+  const [screen, setScreen] = useState<"landing" | "questionnaire">("landing")
   const [{ answers, index }, setState] = useState<Saved>(() => loadSaved())
   const [submitState, setSubmitState] = useState<SubmitState>({ kind: "idle" })
   const submitMutation = useMutation(api.submissions.submit)
@@ -188,26 +198,17 @@ export default function App() {
     }
   }
 
-  if (!welcomed) {
+  if (screen === "landing") {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center px-8 py-16">
-        <div className="mx-auto w-full max-w-xl flex flex-col gap-10">
-          <div className="flex flex-col gap-6">
-            <h1 className="text-5xl font-light tracking-tight sm:text-6xl">Welcome.</h1>
-            <p className="text-lg font-light text-muted leading-relaxed max-w-sm">
-              We're so glad you're here. Tell us everything about your brand — the more we know,
-              the better we can bring your vision to life.
-            </p>
-          </div>
-          <button
-            onClick={() => setWelcomed(true)}
-            className="flex items-center gap-2 self-start font-mono text-xs uppercase tracking-widest text-fg transition-opacity hover:opacity-70"
-          >
-            Let's begin
-            <ArrowRight size={14} weight="regular" />
-          </button>
-        </div>
-      </main>
+      <LandingPage
+        hasProgress={hasAnyProgress(answers, index)}
+        onContinue={() => setScreen("questionnaire")}
+        onStartNew={() => {
+          localStorage.removeItem(STORAGE_KEY)
+          setState({ answers: {}, index: 0 })
+          setScreen("questionnaire")
+        }}
+      />
     )
   }
 
@@ -217,8 +218,11 @@ export default function App() {
         <div className="flex flex-1 flex-col justify-center px-8 py-16 lg:px-16">
           <div className="mx-auto w-full max-w-xl flex flex-col gap-6">
             <h1 className="text-4xl font-light tracking-tight sm:text-5xl">Thank you.</h1>
+            <p className="text-base font-light text-muted leading-relaxed max-w-sm">
+              Our team will review everything you've shared and start making preparations. We'll be in touch shortly to set up a meeting where we can align on the details, fill any gaps, and get the project moving.
+            </p>
             <div className="font-mono text-xs uppercase tracking-widest text-muted">
-              Your responses have been saved.
+              You'll hear from us soon.
             </div>
           </div>
         </div>
@@ -290,14 +294,23 @@ export default function App() {
             )}
 
             <div className="flex items-center gap-6 pt-2">
-              <button
-                onClick={prev}
-                disabled={index === 0}
-                className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-fg transition-opacity hover:opacity-70 disabled:opacity-15"
-              >
-                <ArrowLeft size={14} weight="regular" />
-                Back
-              </button>
+              {index === 0 ? (
+                <button
+                  onClick={() => setScreen("landing")}
+                  className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-muted transition-opacity hover:opacity-70"
+                >
+                  <ArrowLeft size={14} weight="regular" />
+                  Landing
+                </button>
+              ) : (
+                <button
+                  onClick={prev}
+                  className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-fg transition-opacity hover:opacity-70"
+                >
+                  <ArrowLeft size={14} weight="regular" />
+                  Back
+                </button>
+              )}
               <button
                 onClick={next}
                 disabled={!canAdvance}

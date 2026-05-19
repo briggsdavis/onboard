@@ -13,7 +13,7 @@ function Wrap({ children }: { children: React.ReactNode }) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
-      className="w-full h-full max-w-[390px] max-h-[390px]"
+      className="w-full h-full max-w-[488px] max-h-[488px]"
     >
       {children}
     </svg>
@@ -486,9 +486,6 @@ function G10() {
       <line x1="50" y1="50" x2="50" y2="212" stroke={MUTED} strokeWidth="1" />
       <line x1="50" y1="212" x2="212" y2="212" stroke={MUTED} strokeWidth="1" />
 
-      {/* Axis labels */}
-      <text x="53" y="57" fontFamily={MONO} fontSize="6" fill={MUTED} letterSpacing="1">QUALITY</text>
-      <text x="166" y="209" fontFamily={MONO} fontSize="6" fill={MUTED} letterSpacing="1">PRICE</text>
 
       {/* Radar sweep line */}
       <line x1="130" y1="130" x2="214" y2="130" stroke={FG} strokeWidth="0.6"
