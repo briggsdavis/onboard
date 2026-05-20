@@ -26,7 +26,7 @@ export const submit = mutation({
     business_name: v.optional(v.string()),
     offerings: v.optional(v.array(offering)),
     audience: v.optional(v.string()),
-    vibe: v.optional(v.string()),
+    vibe: v.optional(v.array(v.string())),
     branding_amount: v.optional(v.string()),
     logo: v.optional(v.array(uploadedFile)),
     colors: v.optional(v.array(v.string())),
