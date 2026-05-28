@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server"
 import { v } from "convex/values"
+import type { Id } from "./_generated/dataModel"
 
 export const generateUploadUrl = mutation({
   args: {},
@@ -9,8 +10,15 @@ export const generateUploadUrl = mutation({
 })
 
 export const getUrl = query({
-  args: { storageId: v.id("_storage") },
+  // Accept a plain string and normalize it ourselves so a stale/empty/malformed
+  // storageId (e.g. rehydrated from localStorage) returns null instead of throwing
+  // an ArgumentValidationError, which would crash the whole client.
+  args: { storageId: v.string() },
   handler: async (ctx, args) => {
-    return await ctx.storage.getUrl(args.storageId)
+    try {
+      return await ctx.storage.getUrl(args.storageId as Id<"_storage">)
+    } catch {
+      return null
+    }
   },
 })

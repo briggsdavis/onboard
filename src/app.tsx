@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
-import { QuestionGraphic, GThankYou } from "./motionGraphics"
+import { QuestionGraphic, GThankYou } from "./motion-graphics"
 import { LandingPage } from "./landing"
 import { ArrowLeft, ArrowRight } from "@phosphor-icons/react"
 import { useMutation, useQuery } from "convex/react"
