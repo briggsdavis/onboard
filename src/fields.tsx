@@ -3,7 +3,6 @@ import { Plus, X, UploadSimple } from "@phosphor-icons/react"
 import { HexColorPicker, HexColorInput } from "react-colorful"
 import { useMutation, useQuery } from "convex/react"
 import { api } from "../convex/_generated/api"
-import type { Id } from "../convex/_generated/dataModel"
 import type {
   LinksValue,
   ListItem,
@@ -22,7 +21,7 @@ function StoredImage({
   alt: string
   className?: string
 }) {
-  const url = useQuery(api.files.getUrl, { storageId: storageId as Id<"_storage"> })
+  const url = useQuery(api.files.getUrl, storageId ? { storageId } : "skip")
   if (!url) return <div className={`${className ?? ""} bg-rule/30`} />
   return <img src={url} alt={alt} className={className} />
 }
@@ -277,7 +276,10 @@ export function FileUpload({
     const uploadUrl = await generateUploadUrl()
     const res = await fetch(uploadUrl, {
       method: "POST",
-      headers: { "Content-Type": file.type },
+      // Many files the browser can't classify (e.g. Adobe .ai) report an empty
+      // file.type. An empty Content-Type header is rejected by the storage
+      // endpoint with HTTP 400, so fall back to a generic binary type.
+      headers: { "Content-Type": file.type || "application/octet-stream" },
       body: file,
     })
     if (!res.ok) throw new Error(`Upload failed: ${res.status}`)
@@ -846,7 +848,10 @@ export function LinksField({
     const uploadUrl = await generateUploadUrl()
     const res = await fetch(uploadUrl, {
       method: "POST",
-      headers: { "Content-Type": file.type },
+      // Many files the browser can't classify (e.g. Adobe .ai) report an empty
+      // file.type. An empty Content-Type header is rejected by the storage
+      // endpoint with HTTP 400, so fall back to a generic binary type.
+      headers: { "Content-Type": file.type || "application/octet-stream" },
       body: file,
     })
     if (!res.ok) throw new Error(`Upload failed: ${res.status}`)
