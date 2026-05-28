@@ -698,9 +698,7 @@ export function MultiSelect({
           </button>
         )}
       </div>
-      {clashWarning && (
-        <p className="text-sm font-light text-red-500">{clashWarning}</p>
-      )}
+      {clashWarning && <p className="text-sm font-light text-red-500">{clashWarning}</p>}
       {q.allowOther && otherIndices.length > 0 && (
         <div className="flex flex-col gap-2">
           {otherIndices.map((vi, n) => {
