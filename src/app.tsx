@@ -35,13 +35,58 @@ type Saved = { answers: Answers; index: number }
 
 const REVIEW_INDEX = questions.length
 
+// Coerce a saved answer to the shape its question's current `kind` expects.
+// Saved progress can predate a question changing kind (e.g. `vibe` went from
+// single_select to multi_select), which would otherwise crash a field that
+// calls `.map` on what is now the wrong type. Returns undefined to drop it.
+function normalizeAnswer(q: Question, v: AnswerValue): AnswerValue | undefined {
+  switch (q.kind) {
+    case "short_text":
+    case "long_text":
+    case "single_select":
+      return typeof v === "string" ? v : undefined
+    case "multi_select":
+    case "color":
+      // Old single_select/single-color saved a bare string; wrap it.
+      if (typeof v === "string") return v ? [v] : []
+      return Array.isArray(v) && v.every((x) => typeof x === "string") ? v : undefined
+    case "range":
+      return Array.isArray(v) && v.length === 2 && v.every((x) => typeof x === "number")
+        ? (v as AnswerValue)
+        : undefined
+    case "file_upload":
+    case "list":
+    case "offerings":
+      return Array.isArray(v) ? v : undefined
+    case "links":
+      return v &&
+        typeof v === "object" &&
+        !Array.isArray(v) &&
+        Array.isArray((v as LinksValue).links)
+        ? v
+        : undefined
+  }
+}
+
+function normalizeAnswers(raw: Answers): Answers {
+  const byId = new Map(questions.map((q) => [q.id, q]))
+  const out: Answers = {}
+  for (const [id, value] of Object.entries(raw)) {
+    const q = byId.get(id)
+    if (!q) continue // drop answers for questions that no longer exist
+    const normalized = normalizeAnswer(q, value)
+    if (normalized !== undefined) out[id] = normalized
+  }
+  return out
+}
+
 function loadSaved(): Saved {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw) {
       const parsed = JSON.parse(raw) as Saved
       const clamped = Math.max(0, Math.min(parsed.index ?? 0, REVIEW_INDEX))
-      return { answers: parsed.answers ?? {}, index: clamped }
+      return { answers: normalizeAnswers(parsed.answers ?? {}), index: clamped }
     }
   } catch {}
   return { answers: {}, index: 0 }
