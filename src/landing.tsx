@@ -28,7 +28,7 @@ function LandingFormGraphic() {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
-      className="w-full h-full max-w-[488px] max-h-[488px]"
+      className="h-full max-h-[488px] w-full max-w-[488px]"
     >
       {QUESTIONS.map((label, i) => {
         const rowY = 28 + i * 32
@@ -184,25 +184,25 @@ export function LandingPage({
     <main className="flex min-h-screen">
       {/* Left: message + actions */}
       <div className="flex w-full flex-col justify-center px-8 py-16 lg:w-1/2 lg:px-16">
-        <div className="mx-auto w-full max-w-sm flex flex-col gap-10">
+        <div className="mx-auto flex w-full max-w-sm flex-col gap-10">
           <h1 className="text-2xl font-light tracking-tight sm:text-3xl">
             We're so glad you're here, and we can't wait to get started.
           </h1>
           <div className="flex flex-col items-start gap-5">
             <button
               onClick={onContinue}
-              className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-fg transition-opacity hover:opacity-70"
+              className="group flex items-center gap-2 border border-rule px-4 py-3 font-mono text-xs tracking-widest text-fg uppercase transition-colors hover:border-fg"
             >
               {hasProgress ? "Continue questionnaire" : "Begin questionnaire"}
-              <ArrowRight size={14} />
+              <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
             </button>
             {hasProgress && (
               <button
                 onClick={onStartNew}
-                className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-muted transition-opacity hover:opacity-70"
+                className="group flex items-center gap-2 border border-rule px-4 py-3 font-mono text-xs tracking-widest text-muted uppercase transition-colors hover:border-fg hover:text-fg"
               >
                 Start new
-                <ArrowRight size={14} />
+                <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
               </button>
             )}
           </div>
@@ -210,8 +210,8 @@ export function LandingPage({
       </div>
 
       {/* Right: checklist animation */}
-      <aside className="hidden lg:flex lg:w-1/2 items-center justify-center border-l border-rule">
-        <div className="flex items-center justify-center p-8 w-full h-full">
+      <aside className="hidden items-center justify-center border-l border-rule lg:flex lg:w-1/2">
+        <div className="flex h-full w-full items-center justify-center p-8">
           <LandingFormGraphic />
         </div>
       </aside>

@@ -1,6 +1,6 @@
-import { mutation, query } from "./_generated/server"
 import { v } from "convex/values"
 import type { Id } from "./_generated/dataModel"
+import { mutation, query } from "./_generated/server"
 
 export const generateUploadUrl = mutation({
   args: {},
@@ -20,5 +20,20 @@ export const getUrl = query({
     } catch {
       return null
     }
+  },
+})
+
+export const getUrls = query({
+  args: { storageIds: v.array(v.string()) },
+  handler: async (ctx, args) => {
+    return await Promise.all(
+      args.storageIds.map(async (storageId) => {
+        try {
+          return await ctx.storage.getUrl(storageId as Id<"_storage">)
+        } catch {
+          return null
+        }
+      }),
+    )
   },
 })

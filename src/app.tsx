@@ -1,20 +1,8 @@
-import { useEffect, useMemo, useState } from "react"
-import { QuestionGraphic, GThankYou } from "./motion-graphics"
-import { LandingPage } from "./landing"
 import { ArrowLeft, ArrowRight } from "@phosphor-icons/react"
 import { useMutation, useQuery } from "convex/react"
+import { useEffect, useMemo, useState } from "react"
 import { api } from "../convex/_generated/api"
 import type { Id } from "../convex/_generated/dataModel"
-import {
-  questions,
-  type Answers,
-  type AnswerValue,
-  type LinksValue,
-  type ListItem,
-  type Offering,
-  type Question,
-  type UploadedFile,
-} from "./questions"
 import {
   ColorField,
   FileUpload,
@@ -27,11 +15,24 @@ import {
   ShortText,
   SingleSelect,
 } from "./fields"
+import { FileGallery } from "./file-preview"
+import { LandingPage } from "./landing"
+import { QuestionGraphic, GThankYou } from "./motion-graphics"
 import { extractPalette } from "./palette"
+import {
+  questions,
+  type Answers,
+  type AnswerValue,
+  type LinksValue,
+  type ListItem,
+  type Offering,
+  type Question,
+  type UploadedFile,
+} from "./questions"
 
 const STORAGE_KEY = "sidebrary.intake.v1"
 
-type Saved = { answers: Answers; index: number }
+type Saved = { answers: Answers; index: number; reachedReview: boolean }
 
 const REVIEW_INDEX = questions.length
 
@@ -86,10 +87,14 @@ function loadSaved(): Saved {
     if (raw) {
       const parsed = JSON.parse(raw) as Saved
       const clamped = Math.max(0, Math.min(parsed.index ?? 0, REVIEW_INDEX))
-      return { answers: normalizeAnswers(parsed.answers ?? {}), index: clamped }
+      return {
+        answers: normalizeAnswers(parsed.answers ?? {}),
+        index: clamped,
+        reachedReview: parsed.reachedReview ?? clamped === REVIEW_INDEX,
+      }
     }
   } catch {}
-  return { answers: {}, index: 0 }
+  return { answers: {}, index: 0, reachedReview: false }
 }
 
 function defaultValue(q: Question | undefined): AnswerValue {
@@ -127,13 +132,13 @@ function hasAnyProgress(answers: Answers, index: number) {
 
 export default function App() {
   const [screen, setScreen] = useState<"landing" | "questionnaire">("landing")
-  const [{ answers, index }, setState] = useState<Saved>(() => loadSaved())
+  const [{ answers, index, reachedReview }, setState] = useState<Saved>(() => loadSaved())
   const [submitState, setSubmitState] = useState<SubmitState>({ kind: "idle" })
   const submitMutation = useMutation(api.submissions.submit)
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers, index }))
-  }, [answers, index])
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers, index, reachedReview }))
+  }, [answers, index, reachedReview])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -158,7 +163,7 @@ export default function App() {
     const t = setTimeout(() => {
       setDisplayIndex(index)
       setPhase("in")
-    }, 200)
+    }, 240)
     return () => clearTimeout(t)
   }, [index, displayIndex])
 
@@ -216,7 +221,14 @@ export default function App() {
   const next = () => {
     if (phase === "out" || !canAdvance) return
     if (index < REVIEW_INDEX) {
-      setState((s) => ({ ...s, index: s.index + 1 }))
+      setState((s) => {
+        const nextIndex = s.index + 1
+        return {
+          ...s,
+          index: nextIndex,
+          reachedReview: s.reachedReview || nextIndex === REVIEW_INDEX,
+        }
+      })
     } else {
       submit()
     }
@@ -250,7 +262,7 @@ export default function App() {
         onContinue={() => setScreen("questionnaire")}
         onStartNew={() => {
           localStorage.removeItem(STORAGE_KEY)
-          setState({ answers: {}, index: 0 })
+          setState({ answers: {}, index: 0, reachedReview: false })
           setScreen("questionnaire")
         }}
       />
@@ -261,20 +273,20 @@ export default function App() {
     return (
       <main className="flex min-h-screen">
         <div className="flex w-full flex-col justify-center px-8 py-16 lg:w-1/2 lg:px-16">
-          <div className="mx-auto w-full max-w-xl flex flex-col gap-6">
+          <div className="mx-auto flex w-full max-w-xl flex-col gap-6">
             <h1 className="text-4xl font-light tracking-tight sm:text-5xl">Thank you.</h1>
-            <p className="text-base font-light text-muted leading-relaxed max-w-sm">
+            <p className="max-w-sm text-base leading-relaxed font-light text-muted">
               Our team will review everything you've shared and start making preparations. We'll be
               in touch shortly to set up a meeting where we can align on the details, fill any gaps,
               and get the project moving.
             </p>
-            <div className="font-mono text-xs uppercase tracking-widest text-muted">
+            <div className="font-mono text-xs tracking-widest text-muted uppercase">
               You'll hear from us soon.
             </div>
           </div>
         </div>
-        <aside className="hidden lg:flex lg:w-1/2 items-center justify-center border-l border-rule">
-          <div className="flex items-center justify-center p-8 w-full h-full">
+        <aside className="hidden items-center justify-center border-l border-rule lg:flex lg:w-1/2">
+          <div className="flex h-full w-full items-center justify-center p-8">
             <GThankYou />
           </div>
         </aside>
@@ -286,8 +298,8 @@ export default function App() {
     return (
       <main className="flex min-h-screen">
         <div className="flex flex-1 flex-col justify-center px-8 py-16 lg:px-16">
-          <div className="mx-auto w-full max-w-xl flex flex-col gap-6">
-            <div className="font-mono text-xs uppercase tracking-widest text-muted">
+          <div className="mx-auto flex w-full max-w-xl flex-col gap-6">
+            <div className="font-mono text-xs tracking-widest text-muted uppercase">
               Something went wrong
             </div>
             <h1 className="text-4xl font-light tracking-tight sm:text-5xl">
@@ -298,10 +310,14 @@ export default function App() {
             </p>
             <button
               onClick={submit}
-              className="flex items-center gap-2 self-start font-mono text-xs uppercase tracking-widest text-fg transition-opacity hover:opacity-70"
+              className="group flex items-center gap-2 self-start border border-rule px-4 py-3 font-mono text-xs tracking-widest text-fg uppercase transition-colors hover:border-fg"
             >
               Try again
-              <ArrowRight size={14} weight="regular" />
+              <ArrowRight
+                size={14}
+                weight="regular"
+                className="transition-transform group-hover:translate-x-1"
+              />
             </button>
           </div>
         </div>
@@ -325,7 +341,7 @@ export default function App() {
                 className={`flex flex-col gap-8 ${phase === "out" ? "animate-question-out" : "animate-question-in"}`}
               >
                 {isDisplayReview && (
-                  <div className="font-mono text-xs uppercase tracking-widest text-muted">
+                  <div className="font-mono text-xs tracking-widest text-muted uppercase">
                     Review
                   </div>
                 )}
@@ -333,6 +349,11 @@ export default function App() {
                 <h1 className="text-4xl font-light tracking-tight sm:text-5xl">
                   {isDisplayReview ? "Review your answers." : prompt}
                 </h1>
+                {!isDisplayReview && q.hint ? (
+                  <p className="-mt-4 max-w-lg text-sm leading-relaxed font-light text-muted">
+                    {q.hint}
+                  </p>
+                ) : null}
 
                 {isDisplayReview ? (
                   <ReviewSummary
@@ -350,32 +371,57 @@ export default function App() {
                   />
                 )}
 
-                <div className="flex items-center gap-6 pt-2">
+                <div className="flex flex-wrap items-center gap-3 pt-2">
                   {index === 0 ? (
                     <button
                       onClick={() => setScreen("landing")}
-                      className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-muted transition-opacity hover:opacity-70"
+                      className="group flex items-center gap-2 border border-rule px-4 py-3 font-mono text-xs tracking-widest text-muted uppercase transition-colors hover:border-fg hover:text-fg"
                     >
-                      <ArrowLeft size={14} weight="regular" />
+                      <ArrowLeft
+                        size={14}
+                        weight="regular"
+                        className="transition-transform group-hover:-translate-x-1"
+                      />
                       Landing
                     </button>
                   ) : (
                     <button
                       onClick={prev}
-                      className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-fg transition-opacity hover:opacity-70"
+                      className="group flex items-center gap-2 border border-rule px-4 py-3 font-mono text-xs tracking-widest text-fg uppercase transition-colors hover:border-fg"
                     >
-                      <ArrowLeft size={14} weight="regular" />
+                      <ArrowLeft
+                        size={14}
+                        weight="regular"
+                        className="transition-transform group-hover:-translate-x-1"
+                      />
                       Back
                     </button>
                   )}
                   <button
                     onClick={next}
                     disabled={!canAdvance}
-                    className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-fg transition-opacity hover:opacity-70 disabled:opacity-15"
+                    className="group flex items-center gap-2 border border-rule px-4 py-3 font-mono text-xs tracking-widest text-fg uppercase transition-colors hover:border-fg disabled:opacity-15"
                   >
                     {isReview ? "Submit" : "Next"}
-                    <ArrowRight size={14} weight="regular" />
+                    <ArrowRight
+                      size={14}
+                      weight="regular"
+                      className="transition-transform group-hover:translate-x-1"
+                    />
                   </button>
+                  {!isReview && reachedReview ? (
+                    <button
+                      onClick={() => setState((state) => ({ ...state, index: REVIEW_INDEX }))}
+                      className="group flex items-center gap-2 border border-rule px-4 py-3 font-mono text-xs tracking-widest text-muted uppercase transition-colors hover:border-fg hover:text-fg"
+                    >
+                      Back to review
+                      <ArrowRight
+                        size={14}
+                        weight="regular"
+                        className="transition-transform group-hover:translate-x-1"
+                      />
+                    </button>
+                  ) : null}
                 </div>
               </div>
             </div>
@@ -383,10 +429,10 @@ export default function App() {
         </section>
 
         {/* Right: motion graphic */}
-        <aside className="hidden lg:flex lg:w-1/2 items-center justify-center border-l border-rule">
+        <aside className="hidden items-center justify-center border-l border-rule lg:flex lg:w-1/2">
           <div
             key={isDisplayReview ? "__review__" : q?.id}
-            className={`flex items-center justify-center p-8 w-full h-full ${phase === "out" ? "animate-graphic-out" : "animate-graphic-in"}`}
+            className={`flex h-full w-full items-center justify-center p-8 ${phase === "out" ? "animate-graphic-out" : "animate-graphic-in"}`}
           >
             <QuestionGraphic index={displayIndex} isReview={isDisplayReview} />
           </div>
@@ -396,7 +442,7 @@ export default function App() {
       {/* Full-width progress bar */}
       <div className="relative h-px w-full bg-rule">
         <div
-          className="absolute inset-y-0 left-0 bg-fg transition-[width] duration-500 ease-out"
+          className="absolute inset-y-0 left-0 bg-fg transition-[width] duration-700 ease-out"
           style={{ width: `${progress * 100}%` }}
         />
       </div>
@@ -514,30 +560,89 @@ function ReviewSummary({ answers, onEdit }: { answers: Answers; onEdit: (index: 
         const formatted = formatAnswer(q, v)
         const empty = isEmpty(v) || formatted === ""
         return (
-          <button
-            key={q.id}
-            onClick={() => onEdit(i)}
-            className="group flex items-center gap-4 px-4 py-4 text-left transition-colors hover:bg-white/5"
-          >
-            <span className="font-mono w-8 shrink-0 text-xs uppercase tracking-widest text-muted">
+          <div key={q.id} className="group flex items-start gap-4 px-4 py-4">
+            <span className="w-8 shrink-0 font-mono text-xs tracking-widest text-muted uppercase">
               {String(i + 1).padStart(2, "0")}
             </span>
-            <div className="flex flex-1 flex-col gap-1">
-              <span className="font-mono text-xs uppercase tracking-widest text-muted">
+            <div className="flex min-w-0 flex-1 flex-col gap-3">
+              <span className="font-mono text-xs tracking-widest text-muted uppercase">
                 {q.prompt}
               </span>
-              <span
-                className={`text-base font-light tracking-tight ${empty ? "text-muted italic" : "text-fg"}`}
-              >
-                {empty ? "—" : formatted}
-              </span>
+              {empty ? (
+                <span className="text-base font-light tracking-tight text-muted italic">—</span>
+              ) : (
+                <ReviewAnswer q={q} value={v} formatted={formatted} />
+              )}
             </div>
-            <span className="font-mono shrink-0 text-xs uppercase tracking-widest text-muted opacity-0 transition-opacity group-hover:opacity-100">
+            <button
+              type="button"
+              onClick={() => onEdit(i)}
+              className="shrink-0 border border-rule px-3 py-2 font-mono text-xs tracking-widest text-muted uppercase transition-colors hover:border-fg hover:text-fg"
+            >
               Edit
-            </span>
-          </button>
+            </button>
+          </div>
         )
       })}
     </div>
   )
+}
+
+function ReviewAnswer({
+  q,
+  value,
+  formatted,
+}: {
+  q: Question
+  value: AnswerValue
+  formatted: string
+}) {
+  if (q.kind === "color") {
+    return (
+      <div className="flex flex-wrap gap-3">
+        {(value as string[]).map((color, index) => (
+          <div key={color} className="flex items-center gap-2">
+            <span
+              className="h-8 w-8 shrink-0 border border-rule"
+              style={{ backgroundColor: color }}
+            />
+            <span className="font-mono text-xs tracking-widest text-muted uppercase">
+              {["Primary", "Secondary", "Tertiary", "Accent"][index]} · {color}
+            </span>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  if (q.kind === "file_upload") {
+    return <FileGallery files={value as UploadedFile[]} />
+  }
+
+  if (q.kind === "links") {
+    const linkValue = value as LinksValue
+    const links = linkValue.links.filter((link) => link.trim())
+    return (
+      <div className="flex flex-col gap-4">
+        {links.length > 0 ? (
+          <div className="flex flex-col gap-2">
+            {links.map((link) => (
+              <a
+                key={link}
+                href={link}
+                target="_blank"
+                rel="noreferrer"
+                className="truncate text-sm font-light text-fg underline decoration-rule underline-offset-4 hover:decoration-fg"
+              >
+                {link}
+              </a>
+            ))}
+          </div>
+        ) : null}
+        <FileGallery files={linkValue.files} />
+      </div>
+    )
+  }
+
+  return <span className="text-base font-light tracking-tight text-fg">{formatted}</span>
 }

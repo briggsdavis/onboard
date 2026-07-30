@@ -4,6 +4,7 @@ import { v } from "convex/values"
 const uploadedFile = v.object({
   key: v.string(),
   name: v.string(),
+  label: v.optional(v.string()),
   type: v.string(),
   size: v.number(),
   storageId: v.string(),
@@ -31,6 +32,7 @@ export default defineSchema({
     logo: v.optional(v.array(uploadedFile)),
     colors: v.optional(v.array(v.string())),
     imagery: v.optional(v.array(uploadedFile)),
+    images: v.optional(v.array(uploadedFile)),
     inspiration: v.optional(linksValue),
     competitors: v.optional(linksValue),
     pages: v.optional(v.array(v.string())),
@@ -40,5 +42,6 @@ export default defineSchema({
     notes: v.optional(v.string()),
     questions_for_us: v.optional(v.string()),
     submittedAt: v.string(),
+    archived: v.optional(v.boolean()),
   }),
 })

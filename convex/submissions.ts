@@ -1,9 +1,10 @@
-import { mutation } from "./_generated/server"
 import { v } from "convex/values"
+import { mutation } from "./_generated/server"
 
 const uploadedFile = v.object({
   key: v.string(),
   name: v.string(),
+  label: v.optional(v.string()),
   type: v.string(),
   size: v.number(),
   storageId: v.string(),
@@ -31,6 +32,7 @@ export const submit = mutation({
     logo: v.optional(v.array(uploadedFile)),
     colors: v.optional(v.array(v.string())),
     imagery: v.optional(v.array(uploadedFile)),
+    images: v.optional(v.array(uploadedFile)),
     inspiration: v.optional(linksValue),
     competitors: v.optional(linksValue),
     pages: v.optional(v.array(v.string())),

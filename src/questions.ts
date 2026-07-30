@@ -30,6 +30,8 @@ export type Question =
       prompt: string
       hint?: string
       multiple?: boolean
+      maxFiles?: number
+      editableLabels?: boolean
       accept?: string
       required?: boolean
     }
@@ -93,6 +95,7 @@ export type Question =
 export type UploadedFile = {
   key: string
   name: string
+  label?: string
   type: string
   size: number
   storageId: string
@@ -145,7 +148,7 @@ export const questions: Question[] = [
     id: "audience",
     kind: "short_text",
     prompt: "Who is it for?",
-    hint: "Your ideal customer or visitor.",
+    hint: "Who has the problem you solve, where they are, and any traits that shape the site.",
     placeholder: "e.g. independent restaurant owners",
   },
   {
@@ -194,15 +197,17 @@ export const questions: Question[] = [
     id: "logo",
     kind: "file_upload",
     prompt: "Upload your logo, if you have one.",
-    hint: "SVG, PNG, or JPG. Skip if you don't.",
-    multiple: false,
+    hint: "Add up to five logo variants. SVG, PNG, or JPG; the more useful versions, the better.",
+    multiple: true,
+    maxFiles: 5,
+    editableLabels: true,
     accept: "image/*",
   },
   {
     id: "colors",
     kind: "color",
-    prompt: "Choose your colors.",
-    hint: "Up to four. Hover a swatch to remove it.",
+    prompt: "Choose your website colors.",
+    hint: "Pick up to four, then drag them into priority order from primary to accent.",
     max: 4,
     sourceAnswerId: "logo",
   },
@@ -210,8 +215,16 @@ export const questions: Question[] = [
     id: "imagery",
     kind: "file_upload",
     prompt: "Share any brand assets or reference material.",
-    hint: "Brand kits, style guides, PDFs, photos, anything that describes the company.",
+    hint: "Brand kits, style guides, fonts, PDFs, and references. The more, the better.",
     multiple: true,
+  },
+  {
+    id: "images",
+    kind: "file_upload",
+    prompt: "Upload images you'd like us to use.",
+    hint: "Photos, product shots, team images, and illustrations. The more, the better.",
+    multiple: true,
+    accept: "image/*",
   },
   {
     id: "inspiration",
@@ -232,6 +245,7 @@ export const questions: Question[] = [
     id: "pages",
     kind: "multi_select",
     prompt: "Which pages do you need?",
+    hint: "Choose every page visitors will need, including any custom pages.",
     options: [
       { value: "home", label: "Home" },
       { value: "about", label: "About" },
@@ -249,6 +263,7 @@ export const questions: Question[] = [
     id: "features",
     kind: "multi_select",
     prompt: "Which features matter?",
+    hint: "Select every capability the site should support now or soon.",
     options: [
       { value: "newsletter", label: "Newsletter signup" },
       { value: "cms", label: "CMS so you can edit" },
@@ -282,6 +297,7 @@ export const questions: Question[] = [
     id: "notes",
     kind: "long_text",
     prompt: "Anything else we should know?",
+    hint: "Share must-haves, constraints, references, and anything we should avoid.",
     placeholder: "References, must-haves, things to avoid…",
   },
   {

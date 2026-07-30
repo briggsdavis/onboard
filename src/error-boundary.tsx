@@ -19,17 +19,17 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, { error: E
     return (
       <main className="flex min-h-screen items-center justify-center px-8 py-16">
         <div className="mx-auto flex w-full max-w-md flex-col gap-6">
-          <div className="font-mono text-xs uppercase tracking-widest text-muted">
+          <div className="font-mono text-xs tracking-widest text-muted uppercase">
             Something went wrong
           </div>
           <h1 className="text-3xl font-light tracking-tight">Your answers are saved.</h1>
-          <p className="text-sm font-light text-muted leading-relaxed">
+          <p className="text-sm leading-relaxed font-light text-muted">
             Something on this screen failed to load, but nothing you entered was lost. Reload to
             pick up where you left off.
           </p>
           <button
             onClick={() => window.location.reload()}
-            className="font-mono self-start border border-rule px-4 py-2 text-xs uppercase tracking-widest text-fg transition-colors hover:bg-fg hover:text-bg"
+            className="self-start border border-rule px-4 py-2 font-mono text-xs tracking-widest text-fg uppercase transition-colors hover:bg-fg hover:text-bg"
           >
             Reload
           </button>

@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react"
-import { Plus, X, UploadSimple } from "@phosphor-icons/react"
-import { HexColorPicker, HexColorInput } from "react-colorful"
+import { DotsSixVertical, Plus, X, UploadSimple } from "@phosphor-icons/react"
 import { useMutation, useQuery } from "convex/react"
+import { useEffect, useRef, useState } from "react"
+import { HexColorPicker, HexColorInput } from "react-colorful"
 import { api } from "../convex/_generated/api"
 import type {
   LinksValue,
@@ -95,6 +95,9 @@ const DEFAULT_PALETTE = [
   "#7a4a8c",
 ]
 
+const COLOR_ROLES = ["Primary", "Secondary", "Tertiary", "Accent"]
+const LOGO_LABELS = ["Main Logo", "Secondary Logo", "Tertiary Logo", "Fourth Logo", "Fifth Logo"]
+
 function Swatch({
   color,
   onClick,
@@ -155,11 +158,11 @@ function ColorPickerPopover({
   return (
     <div
       ref={ref}
-      className="absolute left-0 top-full z-40 mt-3 flex flex-col gap-3 border border-rule bg-bg p-3"
+      className="absolute top-full left-0 z-40 mt-3 flex flex-col gap-3 border border-rule bg-bg p-3"
     >
       <HexColorPicker color={draft} onChange={setDraft} />
       <div className="flex items-center gap-2">
-        <span className="font-mono text-xs uppercase tracking-widest text-muted">#</span>
+        <span className="font-mono text-xs tracking-widest text-muted uppercase">#</span>
         <HexColorInput
           color={draft}
           onChange={setDraft}
@@ -167,11 +170,11 @@ function ColorPickerPopover({
             if (e.key === "Enter") commit()
           }}
           prefixed={false}
-          className="font-mono w-24 border-b border-rule bg-transparent pb-1 text-sm uppercase text-fg focus:outline-none"
+          className="w-24 border-b border-rule bg-transparent pb-1 font-mono text-sm text-fg uppercase focus:outline-none"
         />
         <button
           onClick={commit}
-          className="font-mono ml-auto border border-rule px-3 py-1 text-xs uppercase tracking-widest text-fg transition-colors hover:bg-fg hover:text-bg"
+          className="ml-auto border border-rule px-3 py-1 font-mono text-xs tracking-widest text-fg uppercase transition-colors hover:bg-fg hover:text-bg"
         >
           Add
         </button>
@@ -193,55 +196,91 @@ export function ColorField({
 }) {
   const max = q.max ?? 4
   const [picking, setPicking] = useState(false)
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
   const add = (c: string) => {
     if (value.includes(c) || value.length >= max) return
     onChange([...value, c])
   }
   const remove = (c: string) => onChange(value.filter((x) => x !== c))
+  const reorder = (to: number) => {
+    if (draggedIndex === null || draggedIndex === to) return
+    const reordered = [...value]
+    const [moved] = reordered.splice(draggedIndex, 1)
+    reordered.splice(to, 0, moved)
+    onChange(reordered)
+    setDraggedIndex(to)
+  }
 
   return (
     <div className="flex flex-col gap-8">
-      <div className="relative flex flex-wrap gap-3">
-        {value.map((c) => (
-          <Swatch key={c} color={c} onClick={() => remove(c)} size="lg">
-            <span className="font-mono absolute inset-x-0 -bottom-5 text-center text-xs uppercase tracking-widest text-muted">
+      <div className="relative flex flex-wrap items-start gap-x-12 gap-y-6">
+        {value.map((c, index) => (
+          <div
+            key={c}
+            draggable
+            onDragStart={() => setDraggedIndex(index)}
+            onDragOver={(event) => {
+              event.preventDefault()
+              reorder(index)
+            }}
+            onDragEnd={() => setDraggedIndex(null)}
+            className={`flex w-16 cursor-grab flex-col items-center gap-2 transition-opacity active:cursor-grabbing ${
+              draggedIndex === index ? "opacity-50" : ""
+            }`}
+          >
+            <div className="flex items-center justify-center gap-1 font-mono text-xs tracking-widest whitespace-nowrap text-muted uppercase">
+              <DotsSixVertical size={14} />
+              {COLOR_ROLES[index]}
+            </div>
+            <Swatch color={c} onClick={() => remove(c)} size="lg">
+              <span className="absolute inset-0 flex items-center justify-center text-fg opacity-0 mix-blend-difference transition-opacity group-hover:opacity-100">
+                <X size={18} weight="regular" />
+              </span>
+            </Swatch>
+            <span className="text-center font-mono text-xs tracking-widest whitespace-nowrap text-muted uppercase">
               {c}
             </span>
-            <span className="absolute inset-0 flex mix-blend-difference items-center justify-center text-fg opacity-0 transition-opacity group-hover:opacity-100">
-              <X size={18} weight="regular" />
-            </span>
-          </Swatch>
+          </div>
         ))}
         {value.length < max && (
-          <button
-            onClick={() => setPicking((p) => !p)}
-            className="flex h-16 w-16 items-center justify-center border border-rule text-muted transition-colors hover:border-fg hover:text-fg"
-          >
-            <Plus size={20} weight="regular" />
-          </button>
+          <div className="flex w-16 flex-col items-center gap-2">
+            <span className="h-4" aria-hidden="true" />
+            <button
+              onClick={() => setPicking((p) => !p)}
+              className="flex h-16 w-16 items-center justify-center border border-rule text-muted transition-colors hover:border-fg hover:text-fg"
+              aria-label="Add color"
+            >
+              <Plus size={20} weight="regular" />
+            </button>
+          </div>
         )}
         {picking && <ColorPickerPopover onAdd={add} onClose={() => setPicking(false)} />}
       </div>
       {suggested && suggested.length > 0 && (
         <div>
-          <div className="font-mono mb-3 text-xs uppercase tracking-widest text-muted">
+          <div className="mb-3 font-mono text-xs tracking-widest text-muted uppercase">
             From your logo
           </div>
           <div className="flex flex-wrap gap-2">
-            {suggested.map((c) => (
-              <Swatch
+            {suggested.map((c, index) => (
+              <span
                 key={c}
-                color={c}
-                size="sm"
-                onClick={() => add(c)}
-                disabled={value.includes(c) || value.length >= max}
-              />
+                className="animate-palette-rise"
+                style={{ animationDelay: `${index * 55}ms` }}
+              >
+                <Swatch
+                  color={c}
+                  size="sm"
+                  onClick={() => add(c)}
+                  disabled={value.includes(c) || value.length >= max}
+                />
+              </span>
             ))}
           </div>
         </div>
       )}
       <div>
-        <div className="font-mono mb-3 text-xs uppercase tracking-widest text-muted">Starter</div>
+        <div className="mb-3 font-mono text-xs tracking-widest text-muted uppercase">Starter</div>
         <div className="flex flex-wrap gap-2">
           {DEFAULT_PALETTE.map((c) => (
             <Swatch
@@ -296,10 +335,17 @@ export function FileUpload({
   const handle = async (files: FileList | null) => {
     if (!files || files.length === 0) return
     setError(null)
-    const list = Array.from(files)
+    const available = q.maxFiles === undefined ? files.length : q.maxFiles - value.length
+    if (available <= 0) {
+      setError(`You can upload up to ${q.maxFiles} files.`)
+      return
+    }
+    const list = Array.from(files).slice(0, available)
     setPending((p) => p + list.length)
     try {
-      const uploaded = await Promise.all(list.map(uploadOne))
+      const uploaded = (await Promise.all(list.map(uploadOne))).map((file, index) =>
+        q.editableLabels ? { ...file, label: LOGO_LABELS[value.length + index] } : file,
+      )
       onChange(q.multiple ? [...value, ...uploaded] : uploaded.slice(0, 1))
     } catch (e: any) {
       setError(e?.message ?? "Upload failed")
@@ -308,6 +354,8 @@ export function FileUpload({
     }
   }
   const remove = (i: number) => onChange(value.filter((_, idx) => idx !== i))
+  const rename = (i: number, label: string) =>
+    onChange(value.map((file, index) => (index === i ? { ...file, label } : file)))
 
   return (
     <div className="flex flex-col gap-6">
@@ -322,7 +370,7 @@ export function FileUpload({
       >
         <div className="flex flex-col items-center gap-3 text-muted">
           <UploadSimple size={20} weight="regular" />
-          <span className="font-mono text-xs uppercase tracking-widest">
+          <span className="font-mono text-xs tracking-widest uppercase">
             {pending > 0 ? `Uploading ${pending}...` : "Drop files or click to browse"}
           </span>
         </div>
@@ -335,28 +383,44 @@ export function FileUpload({
           onChange={(e) => handle(e.target.files)}
         />
       </div>
-      {error && <div className="font-mono text-xs uppercase tracking-widest text-fg">{error}</div>}
+      {error && <div className="font-mono text-xs tracking-widest text-fg uppercase">{error}</div>}
       {value.length > 0 && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {value.map((f, i) => (
-            <div key={f.key} className="group relative aspect-square">
-              {f.type.startsWith("image/") ? (
-                <StoredImage
-                  storageId={f.storageId}
-                  alt={f.name}
-                  className="h-full w-full border border-rule object-cover"
+            <div key={f.key} className="group flex min-w-0 flex-col gap-2">
+              <div className="relative aspect-square">
+                {f.type.startsWith("image/") ? (
+                  <StoredImage
+                    storageId={f.storageId}
+                    alt={f.name}
+                    className="h-full w-full border border-rule object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center border border-rule px-2 text-center font-mono text-xs tracking-widest break-all text-muted uppercase">
+                    {f.name}
+                  </div>
+                )}
+                <button
+                  onClick={() => remove(i)}
+                  className="absolute top-1 right-1 bg-fg px-2 py-0.5 font-mono text-xs tracking-widest text-bg uppercase opacity-0 transition-opacity group-hover:opacity-100"
+                >
+                  remove
+                </button>
+              </div>
+              {q.editableLabels && (
+                <input
+                  type="text"
+                  value={f.label ?? LOGO_LABELS[i]}
+                  aria-label={`Title for ${f.name}`}
+                  onChange={(event) => rename(i, event.target.value)}
+                  className="w-full border-b border-rule bg-transparent pb-1 text-sm font-light text-fg placeholder:text-muted focus:border-fg focus:outline-none"
                 />
-              ) : (
-                <div className="font-mono flex h-full w-full items-center justify-center border border-rule px-2 text-center text-xs uppercase tracking-widest text-muted break-all">
+              )}
+              {!q.editableLabels && (
+                <div className="truncate text-xs font-light text-muted" title={f.name}>
                   {f.name}
                 </div>
               )}
-              <button
-                onClick={() => remove(i)}
-                className="font-mono absolute right-1 top-1 bg-fg px-2 py-0.5 text-xs uppercase tracking-widest text-bg opacity-0 transition-opacity group-hover:opacity-100"
-              >
-                remove
-              </button>
             </div>
           ))}
         </div>
@@ -516,17 +580,17 @@ export function RangeSlider({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-baseline justify-between font-mono text-xs uppercase tracking-widest text-muted">
+      <div className="flex items-baseline justify-between font-mono text-xs tracking-widest text-muted uppercase">
         <span className="text-fg">{formatNumber(lo, q.format)}</span>
         <span className="text-fg">{formatNumber(hi, q.format)}</span>
       </div>
-      <div className="relative h-10 select-none touch-none px-2">
+      <div className="relative h-10 touch-none px-2 select-none">
         <div
           ref={trackRef}
           onPointerDown={onTrackPointerDown}
           className="relative h-full cursor-pointer"
         >
-          <div className="absolute left-0 right-0 top-1/2 h-px -translate-y-1/2 bg-rule" />
+          <div className="absolute top-1/2 right-0 left-0 h-px -translate-y-1/2 bg-rule" />
           <div
             className="absolute top-1/2 h-px -translate-y-1/2 bg-fg"
             style={{ left: pct(lo), right: `calc(100% - ${pct(hi)})` }}
@@ -553,7 +617,7 @@ export function RangeSlider({
           })}
         </div>
       </div>
-      <div className="flex justify-between font-mono text-xs uppercase tracking-widest text-muted">
+      <div className="flex justify-between font-mono text-xs tracking-widest text-muted uppercase">
         <span>{formatNumber(q.min, q.format)}</span>
         <span>{formatNumber(q.max, q.format)}</span>
       </div>
@@ -584,7 +648,7 @@ export function ListField({
           className="group relative flex flex-col gap-2 border border-rule px-4 py-4"
         >
           <div className="flex items-baseline gap-3">
-            <span className="font-mono w-6 text-xs uppercase tracking-widest text-muted">
+            <span className="w-6 font-mono text-xs tracking-widest text-muted uppercase">
               {String(i + 1).padStart(2, "0")}
             </span>
             <input
@@ -614,7 +678,7 @@ export function ListField({
       ))}
       <button
         onClick={add}
-        className="flex items-center gap-2 self-start border border-rule px-4 py-2 font-mono text-xs uppercase tracking-widest text-muted transition-colors hover:border-fg hover:text-fg"
+        className="flex items-center gap-2 self-start border border-rule px-4 py-2 font-mono text-xs tracking-widest text-muted uppercase transition-colors hover:border-fg hover:text-fg"
       >
         <Plus size={14} weight="regular" />
         Add {noun}
@@ -761,7 +825,7 @@ export function OfferingsField({
           className="group relative flex flex-col gap-3 border border-rule px-4 py-4"
         >
           <div className="flex items-baseline gap-3">
-            <span className="font-mono w-6 text-xs uppercase tracking-widest text-muted">
+            <span className="w-6 font-mono text-xs tracking-widest text-muted uppercase">
               {String(i + 1).padStart(2, "0")}
             </span>
             <input
@@ -794,7 +858,7 @@ export function OfferingsField({
                 <button
                   key={k}
                   onClick={() => update(item.id, { kind: k })}
-                  className={`font-mono border px-3 py-1 text-xs uppercase tracking-widest transition-colors ${
+                  className={`border px-3 py-1 font-mono text-xs tracking-widest uppercase transition-colors ${
                     active
                       ? "border-fg bg-fg text-bg"
                       : "border-rule text-muted hover:border-fg hover:text-fg"
@@ -809,7 +873,7 @@ export function OfferingsField({
       ))}
       <button
         onClick={add}
-        className="flex items-center gap-2 self-start border border-rule px-4 py-2 font-mono text-xs uppercase tracking-widest text-muted transition-colors hover:border-fg hover:text-fg"
+        className="flex items-center gap-2 self-start border border-rule px-4 py-2 font-mono text-xs tracking-widest text-muted uppercase transition-colors hover:border-fg hover:text-fg"
       >
         <Plus size={14} weight="regular" />
         Add {value.length === 0 ? "service or product" : "another"}
@@ -887,7 +951,7 @@ export function LinksField({
       <div className="flex flex-col gap-2">
         {links.map((link, i) => (
           <div key={i} className="group flex items-center gap-3">
-            <span className="font-mono w-6 text-xs uppercase tracking-widest text-muted">
+            <span className="w-6 font-mono text-xs tracking-widest text-muted uppercase">
               {String(i + 1).padStart(2, "0")}
             </span>
             <input
@@ -916,7 +980,7 @@ export function LinksField({
         ))}
         <button
           onClick={addLink}
-          className="flex items-center gap-2 self-start border border-rule px-4 py-2 font-mono text-xs uppercase tracking-widest text-muted transition-colors hover:border-fg hover:text-fg"
+          className="flex items-center gap-2 self-start border border-rule px-4 py-2 font-mono text-xs tracking-widest text-muted uppercase transition-colors hover:border-fg hover:text-fg"
         >
           <Plus size={14} weight="regular" />
           Add link
@@ -926,7 +990,7 @@ export function LinksField({
       {q.uploads && (
         <div className="flex flex-col gap-3">
           {q.uploads.hint && (
-            <div className="font-mono text-xs uppercase tracking-widest text-muted">
+            <div className="font-mono text-xs tracking-widest text-muted uppercase">
               {q.uploads.hint}
             </div>
           )}
@@ -941,7 +1005,7 @@ export function LinksField({
           >
             <div className="flex flex-col items-center gap-3 text-muted">
               <UploadSimple size={20} weight="regular" />
-              <span className="font-mono text-xs uppercase tracking-widest">
+              <span className="font-mono text-xs tracking-widest uppercase">
                 {pending > 0 ? `Uploading ${pending}...` : "Drop files or click to browse"}
               </span>
             </div>
@@ -955,7 +1019,7 @@ export function LinksField({
             />
           </div>
           {error && (
-            <div className="font-mono text-xs uppercase tracking-widest text-fg">{error}</div>
+            <div className="font-mono text-xs tracking-widest text-fg uppercase">{error}</div>
           )}
           {files.length > 0 && (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -968,13 +1032,13 @@ export function LinksField({
                       className="h-full w-full border border-rule object-cover"
                     />
                   ) : (
-                    <div className="font-mono flex h-full w-full items-center justify-center border border-rule px-2 text-center text-xs uppercase tracking-widest text-muted break-all">
+                    <div className="flex h-full w-full items-center justify-center border border-rule px-2 text-center font-mono text-xs tracking-widest break-all text-muted uppercase">
                       {f.name}
                     </div>
                   )}
                   <button
                     onClick={() => removeFile(i)}
-                    className="font-mono absolute right-1 top-1 bg-fg px-2 py-0.5 text-xs uppercase tracking-widest text-bg opacity-0 transition-opacity group-hover:opacity-100"
+                    className="absolute top-1 right-1 bg-fg px-2 py-0.5 font-mono text-xs tracking-widest text-bg uppercase opacity-0 transition-opacity group-hover:opacity-100"
                   >
                     remove
                   </button>
