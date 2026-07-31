@@ -187,19 +187,21 @@ function G04({ selection = [], activeVibe }: { selection?: string[]; activeVibe?
       </g>
 
       <g className={show("brutalist")}>
-        <rect x="73" y="75" width="120" height="108" fill={FG} opacity="0.28" />
-        <g>
-          <animateTransform
-            attributeName="transform"
-            type="translate"
-            values="0 0;5 -3;-3 4;0 0"
-            dur="0.42s"
-            repeatCount="indefinite"
-          />
-          <rect x="65" y="67" width="120" height="108" stroke={FG} strokeWidth="4" />
-          <line x1="65" y1="105" x2="185" y2="105" stroke={FG} strokeWidth="4" />
-          <line x1="112" y1="67" x2="112" y2="175" stroke={FG} strokeWidth="4" />
-        </g>
+        <rect x="66" y="69" width="128" height="116" stroke={FG} strokeWidth="3" />
+        <rect x="78" y="83" width="70" height="30" fill={FG}>
+          <animate attributeName="width" values="70;96;70" dur="4.8s" repeatCount="indefinite" />
+        </rect>
+        <rect x="78" y="123" width="31" height="48" fill="none" stroke={FG} strokeWidth="3" />
+        <rect x="119" y="123" width="63" height="48" fill={FG} opacity="0.22">
+          <animate attributeName="x" values="119;113;119" dur="4.8s" repeatCount="indefinite" />
+          <animate attributeName="width" values="63;69;63" dur="4.8s" repeatCount="indefinite" />
+        </rect>
+        <rect x="174" y="78" width="8" height="36" fill="#E84855">
+          <animate attributeName="y" values="78;72;78" dur="4.8s" repeatCount="indefinite" />
+        </rect>
+        <text x="83" y="155" fontFamily={MONO} fontSize="10" fill={FG} fontWeight="700">
+          B/01
+        </text>
       </g>
 
       <g className={show("playful")}>
