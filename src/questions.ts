@@ -178,6 +178,7 @@ export const questions: Question[] = [
       ["brutalist", "luxury"],
       ["editorial", "playful"],
     ],
+    allowOther: { label: "Custom vibe", placeholder: "Describe your vibe…" },
     required: true,
   },
   {

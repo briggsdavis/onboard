@@ -137,258 +137,184 @@ function G03() {
   )
 }
 
-// Q4: Vibe — shape morphs + per-vibe secondary elements + dynamic label entry
-function G04() {
-  const labels = ["EDITORIAL", "BRUTALIST", "PLAYFUL", "LUXURY", "ORGANIC", "TECHNICAL"]
-  const n = labels.length
-  const dur = 8.4 // 1.4s per vibe
+// Q4: Vibe — the latest selection crossfades to its own animated scene
+function G04({ selection = [], activeVibe }: { selection?: string[]; activeVibe?: string }) {
+  const latest = activeVibe || selection.at(-1) || ""
+  const active = latest.startsWith("other:") ? "custom" : latest
+  const show = (name: string) => `vibe-scene ${active === name ? "is-active" : ""}`
+  const label = latest.startsWith("other:")
+    ? latest.slice("other:".length).trim() || "CUSTOM VIBE"
+    : latest || "CHOOSE A VIBE"
 
   return (
     <Wrap>
-      {/* Main morphing rect */}
-      <rect x="60" y="68" width="140" height="124" stroke={FG} strokeWidth="1.5" rx="0" fill="none">
-        <animate
-          attributeName="rx"
-          values="0;0;0;65;20;0;0"
-          keyTimes="0;0.17;0.33;0.5;0.67;0.83;1"
-          dur={`${dur}s`}
-          repeatCount="indefinite"
-        />
-        <animate
-          attributeName="strokeWidth"
-          values="1.5;4;1.5;0.5;1.5;1;1.5"
-          keyTimes="0;0.17;0.33;0.5;0.67;0.83;1"
-          dur={`${dur}s`}
-          repeatCount="indefinite"
-        />
-        <animate
-          attributeName="strokeDasharray"
-          values="none;none;none;none;none;2 6;none"
-          keyTimes="0;0.17;0.33;0.5;0.67;0.83;1"
-          dur={`${dur}s`}
-          repeatCount="indefinite"
-        />
-        <animate
-          attributeName="opacity"
-          values="1;1;0;0;1;1;1"
-          keyTimes="0;0.3;0.33;0.48;0.52;0.67;1"
-          dur={`${dur}s`}
-          repeatCount="indefinite"
-        />
-      </rect>
-
-      {/* EDITORIAL — two bold horizontal dividers inside the frame */}
-      <line x1="60" y1="108" x2="200" y2="108" stroke={FG} strokeWidth="1" opacity="0">
-        <animate
-          attributeName="opacity"
-          values="0.7;0;0;0;0;0;0.7"
-          keyTimes="0;0.15;0.17;0.5;0.67;0.85;1"
-          dur={`${dur}s`}
-          repeatCount="indefinite"
-        />
-      </line>
-      <line x1="60" y1="148" x2="200" y2="148" stroke={FG} strokeWidth="1" opacity="0">
-        <animate
-          attributeName="opacity"
-          values="0.7;0;0;0;0;0;0.7"
-          keyTimes="0;0.15;0.17;0.5;0.67;0.85;1"
-          dur={`${dur}s`}
-          repeatCount="indefinite"
-        />
-      </line>
-
-      {/* BRUTALIST — heavy offset shadow rect */}
-      <rect
-        x="67"
-        y="75"
-        width="140"
-        height="124"
-        stroke={FG}
-        strokeWidth="5"
-        rx="0"
-        fill="none"
-        opacity="0"
-      >
-        <animate
-          attributeName="opacity"
-          values="0;0.5;0;0;0;0;0"
-          keyTimes="0;0.17;0.32;0.5;0.67;0.83;1"
-          dur={`${dur}s`}
-          repeatCount="indefinite"
-        />
-      </rect>
-
-      {/* PLAYFUL — scattered bouncing circles */}
-      {(
-        [
-          { cx: 95, cy: 105, r: 16 },
-          { cx: 165, cy: 93, r: 11 },
-          { cx: 132, cy: 148, r: 20 },
-          { cx: 78, cy: 158, r: 9 },
-          { cx: 178, cy: 158, r: 13 },
-        ] as const
-      ).map((c, i) => (
-        <circle
-          key={i}
-          cx={c.cx}
-          cy={c.cy}
-          r={0}
-          stroke={["#E84855", "#3B82F6", "#10B981", "#F59E0B", "#E84855"][i]}
-          strokeWidth="1.5"
-          fill="none"
-          opacity="0"
-        >
-          <animate
-            attributeName="opacity"
-            values={`0;0;${i % 2 === 0 ? 1 : 0.7};0;0;0;0`}
-            keyTimes="0;0.31;0.38;0.5;0.67;0.83;1"
-            dur={`${dur}s`}
+      <g className={show("")}>
+        <rect x="70" y="72" width="120" height="112" stroke={RULE} />
+        <circle cx="130" cy="128" r="25" stroke={MUTED} strokeDasharray="2 5">
+          <animateTransform
+            attributeName="transform"
+            type="rotate"
+            from="0 130 128"
+            to="360 130 128"
+            dur="12s"
             repeatCount="indefinite"
-            begin={`${i * 0.06}s`}
-          />
-          <animate
-            attributeName="r"
-            values={`0;0;${c.r};${c.r};0;0;0`}
-            keyTimes="0;0.31;0.38;0.48;0.5;0.67;1"
-            dur={`${dur}s`}
-            repeatCount="indefinite"
-            begin={`${i * 0.06}s`}
           />
         </circle>
-      ))}
+      </g>
 
-      {/* LUXURY — fine parallel horizontal lines */}
-      {[82, 95, 108, 121, 134, 147, 160, 173].map((y, i) => (
-        <line key={y} x1="60" y1={y} x2="200" y2={y} stroke={FG} strokeWidth="0.4" opacity="0">
-          <animate
-            attributeName="opacity"
-            values={`0;0;0;0;0.7;0;0`}
-            keyTimes="0;0.17;0.33;0.5;0.58;0.67;1"
-            dur={`${dur}s`}
-            repeatCount="indefinite"
-            begin={`${i * 0.025}s`}
-          />
-        </line>
-      ))}
-
-      {/* ORGANIC — two soft overlapping circles */}
-      <circle cx="108" cy="128" r="0" stroke={FG} strokeWidth="1" fill="none" opacity="0">
-        <animate
-          attributeName="r"
-          values="0;0;0;0;0;38;38;0"
-          keyTimes="0;0.17;0.33;0.5;0.65;0.72;0.83;1"
-          dur={`${dur}s`}
-          repeatCount="indefinite"
-        />
-        <animate
-          attributeName="opacity"
-          values="0;0;0;0;0;1;1;0"
-          keyTimes="0;0.17;0.33;0.5;0.65;0.72;0.83;1"
-          dur={`${dur}s`}
-          repeatCount="indefinite"
-        />
-      </circle>
-      <circle cx="152" cy="128" r="0" stroke={FG} strokeWidth="1" fill="none" opacity="0">
-        <animate
-          attributeName="r"
-          values="0;0;0;0;0;38;38;0"
-          keyTimes="0;0.17;0.33;0.5;0.67;0.74;0.83;1"
-          dur={`${dur}s`}
-          repeatCount="indefinite"
-          begin="0.15s"
-        />
-        <animate
-          attributeName="opacity"
-          values="0;0;0;0;0;1;1;0"
-          keyTimes="0;0.17;0.33;0.5;0.67;0.74;0.83;1"
-          dur={`${dur}s`}
-          repeatCount="indefinite"
-          begin="0.15s"
-        />
-      </circle>
-
-      {/* TECHNICAL — crosshair marks */}
-      <line
-        x1="130"
-        y1="68"
-        x2="130"
-        y2="192"
-        stroke={FG}
-        strokeWidth="0.5"
-        strokeDasharray="2 4"
-        opacity="0"
-      >
-        <animate
-          attributeName="opacity"
-          values="0;0;0;0;0;0;0.5;0"
-          keyTimes="0;0.17;0.33;0.5;0.67;0.83;0.9;1"
-          dur={`${dur}s`}
-          repeatCount="indefinite"
-        />
-      </line>
-      <line
-        x1="60"
-        y1="130"
-        x2="200"
-        y2="130"
-        stroke={FG}
-        strokeWidth="0.5"
-        strokeDasharray="2 4"
-        opacity="0"
-      >
-        <animate
-          attributeName="opacity"
-          values="0;0;0;0;0;0;0.5;0"
-          keyTimes="0;0.17;0.33;0.5;0.67;0.83;0.9;1"
-          dur={`${dur}s`}
-          repeatCount="indefinite"
-        />
-      </line>
-      <circle cx="130" cy="130" r="8" stroke={FG} strokeWidth="0.5" fill="none" opacity="0">
-        <animate
-          attributeName="opacity"
-          values="0;0;0;0;0;0;0.5;0"
-          keyTimes="0;0.17;0.33;0.5;0.67;0.83;0.9;1"
-          dur={`${dur}s`}
-          repeatCount="indefinite"
-        />
-      </circle>
-
-      {/* Labels — slide up on entry */}
-      {labels.map((label, i) => {
-        const s = i / n
-        const e = (i + 0.82) / n
-        const mid = (s + e) / 2
-        return (
-          <text
-            key={label}
-            x="130"
-            y="222"
-            textAnchor="middle"
-            fontFamily={MONO}
-            fontSize="8"
-            fill={MUTED}
-            letterSpacing="3"
-            opacity="0"
+      <g className={show("editorial")}>
+        <rect x="70" y="70" width="120" height="116" stroke={FG} />
+        {[92, 110, 128, 146, 164].map((y, i) => (
+          <line
+            key={y}
+            x1={i === 0 ? 84 : 112}
+            y1={y}
+            x2="176"
+            y2={y}
+            stroke={FG}
+            strokeWidth={i === 0 ? 2 : 0.75}
           >
-            {label}
             <animate
-              attributeName="opacity"
-              values={`0;0;1;1;0`}
-              keyTimes={`0;${s};${s + 0.04};${mid};${e}`}
-              dur={`${dur}s`}
+              attributeName="x2"
+              values="120;176;176"
+              keyTimes="0;0.45;1"
+              dur="2.8s"
               repeatCount="indefinite"
             />
+          </line>
+        ))}
+        <line x1="102" y1="86" x2="102" y2="170" stroke={MUTED} />
+      </g>
+
+      <g className={show("brutalist")}>
+        <rect x="73" y="75" width="120" height="108" fill={FG} opacity="0.28" />
+        <g>
+          <animateTransform
+            attributeName="transform"
+            type="translate"
+            values="0 0;5 -3;-3 4;0 0"
+            dur="0.42s"
+            repeatCount="indefinite"
+          />
+          <rect x="65" y="67" width="120" height="108" stroke={FG} strokeWidth="4" />
+          <line x1="65" y1="105" x2="185" y2="105" stroke={FG} strokeWidth="4" />
+          <line x1="112" y1="67" x2="112" y2="175" stroke={FG} strokeWidth="4" />
+        </g>
+      </g>
+
+      <g className={show("playful")}>
+        {[
+          [92, 105, 18, "#E84855", "0s"],
+          [155, 92, 13, "#3B82F6", ".12s"],
+          [137, 146, 24, "#10B981", ".24s"],
+          [177, 156, 10, "#F59E0B", ".36s"],
+        ].map(([cx, cy, r, color, begin]) => (
+          <circle key={`${cx}`} cx={cx} cy={cy} r={r} fill={color as string}>
             <animate
-              attributeName="y"
-              values={`228;228;222;222;218`}
-              keyTimes={`0;${s};${s + 0.04};${mid};${e}`}
-              dur={`${dur}s`}
+              attributeName="cy"
+              values={`${cy};${Number(cy) - 12};${cy}`}
+              dur="1.2s"
+              begin={begin as string}
               repeatCount="indefinite"
             />
-          </text>
-        )
-      })}
+          </circle>
+        ))}
+      </g>
+
+      <g className={show("luxury")}>
+        <rect
+          x="86"
+          y="84"
+          width="88"
+          height="88"
+          stroke="#d6b36a"
+          strokeWidth="0.75"
+          transform="rotate(45 130 128)"
+        />
+        <circle cx="130" cy="128" r="29" stroke={FG} strokeWidth="0.5" />
+        <line x1="82" y1="128" x2="178" y2="128" stroke="#d6b36a">
+          <animate attributeName="x1" values="82;122;82" dur="3s" repeatCount="indefinite" />
+        </line>
+        <circle cx="130" cy="128" r="3" fill="#d6b36a" />
+      </g>
+
+      <g className={show("organic")}>
+        <circle cx="108" cy="128" r="39" stroke="#9fb389" fill="none">
+          <animate attributeName="r" values="36;43;36" dur="3.4s" repeatCount="indefinite" />
+        </circle>
+        <circle cx="151" cy="128" r="39" stroke={FG} fill="none">
+          <animate attributeName="r" values="43;36;43" dur="3.4s" repeatCount="indefinite" />
+        </circle>
+      </g>
+
+      <g className={show("technical")}>
+        {[82, 106, 130, 154, 178].map((n) => (
+          <g key={n} stroke={MUTED} strokeWidth="0.5">
+            <line x1={n} y1="74" x2={n} y2="182" />
+            <line x1="76" y1={n - 2} x2="184" y2={n - 2} />
+          </g>
+        ))}
+        <circle cx="130" cy="128" r="27" stroke={FG} strokeDasharray="3 3" />
+        <line x1="76" y1="90" x2="184" y2="90" stroke="#3B82F6" strokeWidth="1.5">
+          <animate attributeName="y1" values="82;174;82" dur="2.6s" repeatCount="indefinite" />
+          <animate attributeName="y2" values="82;174;82" dur="2.6s" repeatCount="indefinite" />
+        </line>
+      </g>
+
+      <g className={show("custom")}>
+        <path
+          d="M64 144 C80 67 112 188 137 91 S181 190 199 111"
+          stroke="#E84855"
+          strokeWidth="2"
+          fill="none"
+          strokeLinecap="round"
+          strokeDasharray="240"
+          strokeDashoffset="240"
+        >
+          <animate
+            attributeName="stroke-dashoffset"
+            values="240;0;0;240"
+            keyTimes="0;.4;.75;1"
+            dur="3.5s"
+            repeatCount="indefinite"
+          />
+        </path>
+        <circle cx="130" cy="128" r="44" stroke={FG} strokeDasharray="1 7">
+          <animateTransform
+            attributeName="transform"
+            type="rotate"
+            from="0 130 128"
+            to="-360 130 128"
+            dur="9s"
+            repeatCount="indefinite"
+          />
+        </circle>
+      </g>
+
+      <text
+        x="130"
+        y="220"
+        textAnchor="middle"
+        fontFamily={MONO}
+        fontSize="8"
+        fill={MUTED}
+        letterSpacing="2.4"
+      >
+        {label.toUpperCase().slice(0, 24)}
+      </text>
+      {selection.length > 1 && (
+        <text
+          x="130"
+          y="236"
+          textAnchor="middle"
+          fontFamily={MONO}
+          fontSize="6"
+          fill={MUTED}
+          letterSpacing="1.5"
+        >
+          {selection.length} VIBES SELECTED
+        </text>
+      )}
     </Wrap>
   )
 }
@@ -1643,8 +1569,18 @@ export function GThankYou() {
 
 const GRAPHICS = [G01, G02, G03, G04, G05, G06, G07, G08, G09, G10, G11, G12, G13, G14, G15, G16]
 
-export function QuestionGraphic({ index, isReview }: { index: number; isReview: boolean }) {
+export function QuestionGraphic({
+  index,
+  isReview,
+  selection,
+  activeVibe,
+}: {
+  index: number
+  isReview: boolean
+  selection?: string[]
+  activeVibe?: string
+}) {
   if (isReview) return <GReview />
   const Graphic = GRAPHICS[index] ?? G01
-  return <Graphic />
+  return index === 3 ? <G04 selection={selection} activeVibe={activeVibe} /> : <Graphic />
 }

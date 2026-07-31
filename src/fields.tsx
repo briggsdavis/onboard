@@ -197,9 +197,12 @@ export function ColorField({
   const max = q.max ?? 4
   const [picking, setPicking] = useState(false)
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
+  const [hexDraft, setHexDraft] = useState("")
+  const [hexError, setHexError] = useState<string | null>(null)
   const add = (c: string) => {
-    if (value.includes(c) || value.length >= max) return
-    onChange([...value, c])
+    const normalized = c.toLowerCase()
+    if (value.some((color) => color.toLowerCase() === normalized) || value.length >= max) return
+    onChange([...value, normalized])
   }
   const remove = (c: string) => onChange(value.filter((x) => x !== c))
   const reorder = (to: number) => {
@@ -209,6 +212,33 @@ export function ColorField({
     reordered.splice(to, 0, moved)
     onChange(reordered)
     setDraggedIndex(to)
+  }
+
+  const addHex = () => {
+    if (value.length >= max) {
+      setHexError(`You can choose up to ${max} colors.`)
+      return
+    }
+    const match = hexDraft.trim().match(/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i)
+    if (!match) {
+      setHexError("Enter a 3 or 6 digit hex code.")
+      return
+    }
+    const digits =
+      match[1].length === 3
+        ? match[1]
+            .split("")
+            .map((digit) => digit + digit)
+            .join("")
+        : match[1]
+    const color = `#${digits.toLowerCase()}`
+    if (value.some((existing) => existing.toLowerCase() === color)) {
+      setHexError("That color is already in your palette.")
+      return
+    }
+    add(color)
+    setHexDraft("")
+    setHexError(null)
   }
 
   return (
@@ -242,19 +272,74 @@ export function ColorField({
             </span>
           </div>
         ))}
-        {value.length < max && (
-          <div className="flex w-16 flex-col items-center gap-2">
-            <span className="h-4" aria-hidden="true" />
+      </div>
+      <div className="flex max-w-lg flex-col gap-3">
+        <div className="font-mono text-xs tracking-widest text-muted uppercase">
+          Choose your own color
+        </div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <div className="relative">
             <button
-              onClick={() => setPicking((p) => !p)}
-              className="flex h-16 w-16 items-center justify-center border border-rule text-muted transition-colors hover:border-fg hover:text-fg"
-              aria-label="Add color"
+              type="button"
+              onClick={() => setPicking((open) => !open)}
+              disabled={value.length >= max}
+              className="group flex h-10 shrink-0 items-center gap-3 border border-rule pr-4 font-mono text-xs tracking-widest text-fg uppercase transition-colors hover:border-fg disabled:opacity-30"
+              aria-expanded={picking}
             >
-              <Plus size={20} weight="regular" />
+              <span
+                className="h-full w-10 border-r border-rule"
+                style={{
+                  background:
+                    "linear-gradient(135deg, #ff3b30, #ffcc00 25%, #34c759 50%, #007aff 75%, #af52de)",
+                }}
+                aria-hidden="true"
+              />
+              Color spectrum
             </button>
+            {picking && <ColorPickerPopover onAdd={add} onClose={() => setPicking(false)} />}
           </div>
+          <div className="flex min-w-0 flex-1 items-center border-b border-rule pb-2 focus-within:border-fg">
+            <label htmlFor="custom-hex-color" className="sr-only">
+              Enter a hex code
+            </label>
+            <span className="font-mono text-base text-muted">#</span>
+            <input
+              id="custom-hex-color"
+              type="text"
+              inputMode="text"
+              autoComplete="off"
+              value={hexDraft.replace(/^#/, "")}
+              placeholder="HEX CODE"
+              maxLength={6}
+              onChange={(event) => {
+                setHexDraft(event.target.value.replace(/[^0-9a-f]/gi, ""))
+                setHexError(null)
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault()
+                  addHex()
+                }
+              }}
+              aria-describedby={hexError ? "custom-hex-error" : undefined}
+              aria-invalid={hexError ? true : undefined}
+              className="min-w-0 flex-1 bg-transparent pl-1 font-mono text-base tracking-widest text-fg uppercase placeholder:text-muted focus:outline-none"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={addHex}
+            className="border border-rule px-4 py-2 font-mono text-xs tracking-widest text-fg uppercase transition-colors hover:border-fg disabled:opacity-30"
+            disabled={value.length >= max}
+          >
+            Add
+          </button>
+        </div>
+        {hexError && (
+          <p id="custom-hex-error" className="text-sm font-light text-red-500" role="alert">
+            {hexError}
+          </p>
         )}
-        {picking && <ColorPickerPopover onAdd={add} onClose={() => setPicking(false)} />}
       </div>
       {suggested && suggested.length > 0 && (
         <div>
@@ -691,10 +776,12 @@ export function MultiSelect({
   q,
   value,
   onChange,
+  onOptionInteract,
 }: {
   q: Extract<Question, { kind: "multi_select" }>
   value: string[]
   onChange: (v: string[]) => void
+  onOptionInteract?: (value: string) => void
 }) {
   const otherIndices = value
     .map((v, i) => (v.startsWith("other:") || v === "other" ? i : -1))
@@ -717,16 +804,21 @@ export function MultiSelect({
       })()
     : null
 
-  const toggle = (v: string) =>
+  const toggle = (v: string) => {
+    onOptionInteract?.(v)
     onChange(value.includes(v) ? value.filter((x) => x !== v) : [...value, v])
+  }
 
   const addOther = () => {
+    onOptionInteract?.("other:")
     onChange([...value, "other:"])
     setTimeout(() => lastOtherRef.current?.focus(), 0)
   }
 
-  const setOtherAt = (i: number, text: string) =>
+  const setOtherAt = (i: number, text: string) => {
+    onOptionInteract?.(`other:${text}`)
     onChange(value.map((v, idx) => (idx === i ? `other:${text}` : v)))
+  }
 
   const removeAt = (i: number) => onChange(value.filter((_, idx) => idx !== i))
 

@@ -133,6 +133,10 @@ function hasAnyProgress(answers: Answers, index: number) {
 export default function App() {
   const [screen, setScreen] = useState<"landing" | "questionnaire">("landing")
   const [{ answers, index, reachedReview }, setState] = useState<Saved>(() => loadSaved())
+  const [activeVibe, setActiveVibe] = useState(() => {
+    const savedVibes = answers.vibe
+    return Array.isArray(savedVibes) ? ((savedVibes.at(-1) as string | undefined) ?? "") : ""
+  })
   const [submitState, setSubmitState] = useState<SubmitState>({ kind: "idle" })
   const submitMutation = useMutation(api.submissions.submit)
 
@@ -263,6 +267,7 @@ export default function App() {
         onStartNew={() => {
           localStorage.removeItem(STORAGE_KEY)
           setState({ answers: {}, index: 0, reachedReview: false })
+          setActiveVibe("")
           setScreen("questionnaire")
         }}
       />
@@ -368,6 +373,7 @@ export default function App() {
                     onSubmit={next}
                     suggested={suggested}
                     listNoun={listNoun}
+                    onVibeInteract={setActiveVibe}
                   />
                 )}
 
@@ -434,7 +440,12 @@ export default function App() {
             key={isDisplayReview ? "__review__" : q?.id}
             className={`flex h-full w-full items-center justify-center p-8 ${phase === "out" ? "animate-graphic-out" : "animate-graphic-in"}`}
           >
-            <QuestionGraphic index={displayIndex} isReview={isDisplayReview} />
+            <QuestionGraphic
+              index={displayIndex}
+              isReview={isDisplayReview}
+              selection={q?.id === "vibe" && Array.isArray(value) ? (value as string[]) : undefined}
+              activeVibe={q?.id === "vibe" ? activeVibe : undefined}
+            />
           </div>
         </aside>
       </div>
@@ -457,6 +468,7 @@ function Field({
   onSubmit,
   suggested,
   listNoun,
+  onVibeInteract,
 }: {
   q: (typeof questions)[number]
   value: AnswerValue
@@ -464,6 +476,7 @@ function Field({
   onSubmit: () => void
   suggested: string[]
   listNoun: string
+  onVibeInteract: (vibe: string) => void
 }) {
   switch (q.kind) {
     case "short_text":
@@ -479,7 +492,14 @@ function Field({
     case "single_select":
       return <SingleSelect q={q} value={value as string} onChange={setValue} />
     case "multi_select":
-      return <MultiSelect q={q} value={value as string[]} onChange={setValue} />
+      return (
+        <MultiSelect
+          q={q}
+          value={value as string[]}
+          onChange={setValue}
+          onOptionInteract={q.id === "vibe" ? onVibeInteract : undefined}
+        />
+      )
     case "range":
       return <RangeSlider q={q} value={value as [number, number]} onChange={setValue} />
     case "list":
